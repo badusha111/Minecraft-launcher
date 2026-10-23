@@ -693,7 +693,10 @@ public sealed class MainWindow : Window
             Directory.CreateDirectory(path.BasePath);
             var launcherProfilesPath = Path.Combine(path.BasePath, "launcher_profiles.json");
             if (!File.Exists(launcherProfilesPath))
-                await File.WriteAllTextAsync(launcherProfilesPath, "{\\n  \\"profiles\\": {},\\n  \\"settings\\": {}\\n}");
+                await File.WriteAllTextAsync(launcherProfilesPath, @"{
+  ""profiles"": {},
+  ""settings"": {}
+}");
 
             var start = new ProcessStartInfo(await EnsureJavaExecutableAsync(gameVersion, path.BasePath)) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
             start.ArgumentList.Add("-jar");
