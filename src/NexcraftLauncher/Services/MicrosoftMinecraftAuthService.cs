@@ -11,9 +11,9 @@ public sealed record AuthenticatedMinecraftAccount(string Username, string Uuid,
 public sealed class MicrosoftMinecraftAuthService
 {
     // Public client ID used by the Minecraft Launcher ecosystem; no client secret is embedded.
-    private const string ClientId = "00000000-402b-4cd3-a82b-c45ab2f1d3f7";
-    private static readonly Uri DeviceCodeUri = new("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode");
-    private static readonly Uri TokenUri = new("https://login.microsoftonline.com/consumers/oauth2/v2.0/token");
+    private const string ClientId = "00000000402b5328";
+    private static readonly Uri DeviceCodeUri = new("https://login.live.com/oauth20_connect.srf");
+    private static readonly Uri TokenUri = new("https://login.live.com/oauth20_token.srf");
     private readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(30) };
 
     public async Task<AuthenticatedMinecraftAccount> SignInAsync(
@@ -25,7 +25,8 @@ public sealed class MicrosoftMinecraftAuthService
             new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 ["client_id"] = ClientId,
-                ["scope"] = "XboxLive.signin offline_access"
+                ["scope"] = "service::user.auth.xboxlive.com::MBI_SSL",
+                ["response_type"] = "device_code"
             }), cancellationToken);
         var deviceText = await deviceResponse.Content.ReadAsStringAsync(cancellationToken);
         if (!deviceResponse.IsSuccessStatusCode)
