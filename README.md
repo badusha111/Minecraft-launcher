@@ -4,14 +4,17 @@ An independent Minecraft: Java Edition launcher for Windows, with a dark gaming 
 
 ## Current status
 
-Early development. The WPF interface prototype is in place. The launcher does **not yet download, authenticate, or start Minecraft**.
+Early development. The WPF interface prototype and a first settings dialog are implemented. The launcher does **not yet download Minecraft itself, authenticate an account, or start the game**.
 
 ## Implemented foundation
 
 - WPF application targeting .NET 8 for Windows.
 - Dark home screen and Minecraft version selector prototype.
-- Versioned server modpack manifest model.
-- Manifest validation for safe relative paths, HTTPS download URLs, unique paths, and SHA-256 hash format.
+- Settings dialog for the game directory, minimum/maximum memory values, and close-on-launch preference.
+- Persistent JSON settings stored under the current Windows user's application data directory.
+- Versioned server modpack manifest model and example.
+- Manifest metadata validation for safe relative paths, HTTPS URLs, unique paths, and SHA-256 format.
+- A single-file modpack downloader that enforces HTTPS, limits file size, checks SHA-256 before installation, and rejects paths escaping the selected instance directory.
 - GitHub Actions workflow that builds and publishes a Windows x64 artifact.
 
 ## Planned features
@@ -19,13 +22,13 @@ Early development. The WPF interface prototype is in place. The launcher does **
 1. Minecraft installation and version metadata handling.
 2. Secure Microsoft account sign-in for licensed Minecraft accounts.
 3. Game launch with Java/runtime checks and configurable memory.
-4. Server modpack installation, hash verification, and synchronization.
-5. Progress reporting, logs, and actionable error messages.
-6. Settings, installed-instance library, and update flow.
+4. Manifest-driven modpack synchronization with progress and cancellation.
+5. Installed-instance library, logs, and actionable error messages.
+6. Settings integration with the eventual game launch flow.
 
 ## Modpack manifest
 
-See [`docs/modpack-manifest.example.json`](docs/modpack-manifest.example.json). Each file entry has a relative destination path, HTTPS URL, and SHA-256 digest. The validator currently checks manifest metadata; the downloader, hash verification against downloaded bytes, and installation flow still need to be implemented. Never run downloaded JARs as part of installation.
+See [`docs/modpack-manifest.example.json`](docs/modpack-manifest.example.json). Each file entry has a relative destination path, HTTPS URL, and SHA-256 digest. The downloader currently installs one manifest file at a time; reading a remote manifest, comparing the installed state, batch installation, and UI integration remain to be implemented. Downloaded JARs are never executed by the installer.
 
 ## Build
 
