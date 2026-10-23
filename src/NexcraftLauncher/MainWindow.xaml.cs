@@ -235,13 +235,68 @@ public partial class MainWindow : Window
     private void Settings_Click(object sender, RoutedEventArgs e)
     {
         SetActiveNavigation(SettingsNavButton);
-        var settingsWindow = new SettingsWindow { Owner = this };
-        if (settingsWindow.ShowDialog() == true)
+        var content = new StackPanel { Margin = new Thickness(24) };
+        content.Children.Add(new TextBlock { Text = "НАСТРОЙКИ ЛАУНЧЕРА", FontSize = 11, FontWeight = FontWeights.Bold, Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#B99AFF") });
+        content.Children.Add(new TextBlock { Text = "Подстрой игру под свой компьютер", FontSize = 25, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 7, 0, 18) });
+        content.Children.Add(new TextBlock { Text = "Папка игры", Margin = new Thickness(0, 0, 0, 6) });
+        var folder = new TextBox { Text = GetGameDirectory(), Height = 38, Padding = new Thickness(9, 7, 9, 7) };
+        content.Children.Add(folder);
+        var browse = new Button { Content = "Обзор…", Padding = new Thickness(14, 8), Margin = new Thickness(0, 8, 0, 16), HorizontalAlignment = HorizontalAlignment.Left };
+        browse.Click += (_, _) =>
         {
-            _settings = _settingsService.Load();
-            StatusText.Text = "Настройки сохранены.";
-        }
+            var dialog = new OpenFolderDialog { Title = "Выберите папку для файлов Minecraft", Multiselect = false, InitialDirectory = Directory.Exists(folder.Text) ? folder.Text : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) };
+            if (dialog.ShowDialog() == true) folder.Text = dialog.FolderName;
+        };
+        content.Children.Add(browse);
+        content.Children.Add(new TextBlock { Text = "Память для Minecraft (МБ)", Margin = new Thickness(0, 0, 0, 6) });
+        var memory = new Grid();
+        memory.ColumnDefinitions.Add(new ColumnDefinition());
+        memory.ColumnDefinitions.Add(new ColumnDefinition());
+        var min = MakeMemoryCombo(new[] { 512, 1024, 2048, 4096 }, _settings.MemoryMinimumMb);
+        var max = MakeMemoryCombo(new[] { 2048, 4096, 6144, 8192, 12288, 16384 }, _settings.MemoryMaximumMb);
+        Grid.SetColumn(max, 1);
+        memory.Children.Add(min);
+        memory.Children.Add(max);
+        content.Children.Add(memory);
+        var close = new CheckBox { Content = "Закрывать лаунчер после запуска игры", IsChecked = _settings.CloseLauncherOnGameStart, Margin = new Thickness(0, 16, 0, 0) };
+        content.Children.Add(close);
+        var error = new TextBlock { Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#FFB36B"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 10, 0, 0) };
+        content.Children.Add(error);
+        var save = new Button { Content = "Сохранить настройки", Padding = new Thickness(18, 10), Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#19F58A"), Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#092318"), FontWeight = FontWeights.Bold, BorderThickness = new Thickness(0), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 18, 0, 0) };
+        save.Click += (_, _) =>
+        {
+            int minValue = MemoryValue(min, 1024);
+            int maxValue = MemoryValue(max, 4096);
+            if (string.IsNullOrWhiteSpace(folder.Text)) { error.Text = "Укажите папку игры."; return; }
+            if (maxValue < minValue) { error.Text = "Максимальная память должна быть не меньше минимальной."; return; }
+            try
+            {
+                _settings.GameDirectory = folder.Text.Trim();
+                _settings.MemoryMinimumMb = minValue;
+                _settings.MemoryMaximumMb = maxValue;
+                _settings.CloseLauncherOnGameStart = close.IsChecked == true;
+                _settingsService.Save(_settings);
+                StatusText.Text = "Настройки сохранены.";
+                error.Text = "";
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { error.Text = $"Не удалось сохранить настройки: {ex.Message}"; }
+        };
+        content.Children.Add(save);
+        ShowSectionPage(content);
     }
+
+    private static ComboBox MakeMemoryCombo(int[] values, int selected)
+    {
+        var combo = new ComboBox { Height = 38, Margin = new Thickness(4, 0, 4, 0) };
+        foreach (var value in values) combo.Items.Add(new ComboBoxItem { Content = value.ToString() });
+        foreach (ComboBoxItem item in combo.Items)
+            if (int.TryParse(item.Content?.ToString(), out var parsed) && parsed == selected) { combo.SelectedItem = item; return combo; }
+        combo.SelectedIndex = 0;
+        return combo;
+    }
+
+    private static int MemoryValue(ComboBox combo, int fallback) =>
+        combo.SelectedItem is ComboBoxItem item && int.TryParse(item.Content?.ToString(), out var value) ? value : fallback;
 
     private string GetGameDirectory() =>
         string.IsNullOrWhiteSpace(_settings.GameDirectory)
