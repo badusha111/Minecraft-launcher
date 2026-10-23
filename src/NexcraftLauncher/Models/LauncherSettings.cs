@@ -7,6 +7,9 @@ public sealed class LauncherSettings
     [JsonPropertyName("selectedMinecraftVersion")]
     public string SelectedMinecraftVersion { get; set; } = "1.21.1";
 
+    [JsonPropertyName("playerNickname")]
+    public string PlayerNickname { get; set; } = "";
+
     [JsonPropertyName("memoryMinimumMb")]
     public int MemoryMinimumMb { get; set; } = 1024;
 
