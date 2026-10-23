@@ -65,12 +65,12 @@ public sealed class MinecraftInstallationService
                     foreach (var classifier in classifiers.EnumerateObject())
                     {
                         if (!classifier.Name.Contains("natives", StringComparison.OrdinalIgnoreCase)) continue;
-                        var artifact = classifier.Value;
-                        var url = GetString(artifact, "url");
-                        var relPath = GetString(artifact, "path");
+                        var classifierArtifact = classifier.Value;
+                        var url = GetString(classifierArtifact, "url");
+                        var relPath = GetString(classifierArtifact, "path");
                         if (url is not null && relPath is not null)
                             libraries.Add((url, SafeCombine(root, Path.Combine("libraries", relPath)),
-                                GetString(artifact, "sha1"), GetLong(artifact, "size")));
+                                GetString(classifierArtifact, "sha1"), GetLong(classifierArtifact, "size")));
                     }
                 }
             }
