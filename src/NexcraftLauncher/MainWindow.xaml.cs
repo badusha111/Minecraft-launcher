@@ -11,6 +11,9 @@ public partial class MainWindow : Window
     private readonly MinecraftMetadataService _metadataService = new();
     private readonly JavaRuntimeService _javaRuntimeService = new();
     private readonly MinecraftInstallationService _installationService = new();
+    private readonly MicrosoftMinecraftAuthService _authService = new();
+    private readonly MinecraftLaunchService _launchService = new();
+    private AuthenticatedMinecraftAccount? _account;
     private bool _isInstalling;
     private LauncherSettings _settings;
 
@@ -90,8 +93,20 @@ public partial class MainWindow : Window
         DownloadProgress.Value = 0;
         try
         {
-            StatusText.Text = "Подготавливаю установку…";
             var status = new Progress<string>(message => StatusText.Text = message);
+            if (_account is null)
+            {
+                StatusText.Text = "Нужен официальный вход Microsoft…";
+                _account = await _authService.SignInAsync(
+                    message => MessageBox.Show(this, message + "\n\nПосле подтверждения входа вернись в NEXCRAFT.",
+                        "NEXCRAFT — Вход в Minecraft", MessageBoxButton.OK, MessageBoxImage.Information),
+                    status);
+                PlayerNicknameTextBox.Text = _account.Username;
+                _settings.PlayerNickname = _account.Username;
+                _settingsService.Save(_settings);
+            }
+
+            StatusText.Text = "Подготавливаю установку…";
             var progress = new Progress<double>(value => DownloadProgress.Value = Math.Clamp(value * 100, 0, 100));
             await _installationService.InstallAsync(version, _settings.GameDirectory, status, progress);
             var javaMajor = version.StartsWith("1.21", StringComparison.Ordinal) ? 21
@@ -99,10 +114,12 @@ public partial class MainWindow : Window
                 : version.StartsWith("1.16", StringComparison.Ordinal) ? 8
                 : throw new InvalidOperationException("Для этой версии Minecraft пока не настроен выбор Java.");
             var java = await _javaRuntimeService.EnsureRuntimeAsync(javaMajor, _settings.GameDirectory, status);
-            StatusText.Text = $"Minecraft {version} и Java {java.MajorVersion} установлены. Для запуска потребуется официальная авторизация Minecraft.";
-            MessageBox.Show(
-                $"Файлы Minecraft {version} загружены и проверены.\nJava {java.MajorVersion} установлена автоматически.\nНик NEXCRAFT: {nickname}\n\nПапка игры: {_settings.GameDirectory}\n\nСледующий этап — официальная авторизация и запуск игры.",
-                "NEXCRAFT — Установка завершена", MessageBoxButton.OK, MessageBoxImage.Information);
+            await _launchService.LaunchAsync(version, _settings.GameDirectory, java.ExecutablePath,
+                new MinecraftSession(_account!.Username, _account.Uuid, _account.AccessToken),
+                _settings.MemoryMinimumMb, _settings.MemoryMaximumMb, status);
+            StatusText.Text = $"Minecraft {version} запущена под аккаунтом {_account.Username}.";
+            if (_settings.CloseLauncherOnGameStart)
+                Close();
         }
         catch (OperationCanceledException)
         {
