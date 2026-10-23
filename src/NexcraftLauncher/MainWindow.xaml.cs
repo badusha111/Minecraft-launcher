@@ -203,10 +203,25 @@ public partial class MainWindow : Window
             // В CmlLib v4 класс сессии называется MSession вместо MinecraftSession
             MSession session;
 
-            if (_offlineMode)
+                       if (_offlineMode)
             {
                 StatusText.Text = "Создание автономного профиля...";
-                session = MSession.CreateOfflineSession(nickname);
+                
+                // Рассчитываем правильный оффлайн-UUID
+                byte[] nameBytes = System.Text.Encoding.UTF8.GetBytes("OfflinePlayer:" + nickname);
+                byte[] hashBytes = System.Security.Cryptography.MD5.HashData(nameBytes);
+                
+                // Точная побитовая корректировка под стандарт UUID v3 (как в Java)
+                hashBytes[6] = (byte)((hashBytes[6] & 0x0f) | 0x30);
+                hashBytes[8] = (byte)((hashBytes[8] & 0x3f) | 0x80);
+                
+                string offlineUuid = new Guid(hashBytes).ToString("N");
+                
+                // Создаем сессию с пущенным токеном и сгенерированным UUID
+                session = new MSession(nickname, "00000000000000000000000000000000", offlineUuid);
+                
+                // РАЗБЛОКИРОВКА МУЛЬТИПЛЕЕРА: принудительно выставляем тип legacy
+                session.UserType = "legacy"; 
             }
             else
             {
