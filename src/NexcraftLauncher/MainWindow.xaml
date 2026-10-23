@@ -160,10 +160,13 @@
                                         <TextBlock Text="JAVA" FontSize="9" FontWeight="Bold" Foreground="#D9CCFF"/>
                                     </Border>
                                 </Grid>
-                                <ComboBox x:Name="VersionSelector" Height="42" SelectedIndex="0" IsTextSearchEnabled="True" ToolTip="Выбери любую доступную стабильную версию Minecraft">
-                                    <ComboBoxItem Content="1.21.1 — Vanilla"/>
-                                    <ComboBoxItem Content="1.20.1 — Vanilla"/>
-                                    <ComboBoxItem Content="1.16.5 — Vanilla"/>
+                                <ComboBox x:Name="VersionSelector" Height="42" SelectedIndex="0" IsTextSearchEnabled="True" ToolTip="Выбери версию Minecraft Java Edition"/>
+                                <TextBlock Text="ЗАГРУЗЧИК" FontSize="11" FontWeight="Bold" Foreground="#B99AFF" Margin="0,12,0,6"/>
+                                <ComboBox x:Name="LoaderSelector" Height="40" SelectedIndex="0" ToolTip="Vanilla — без модов; Fabric и Forge — загрузчики модов; OptiFine — графика и шейдеры">
+                                    <ComboBoxItem Content="Vanilla — обычная игра"/>
+                                    <ComboBoxItem Content="Fabric — лёгкий загрузчик модов"/>
+                                    <ComboBoxItem Content="Forge — загрузчик модов"/>
+                                    <ComboBoxItem Content="OptiFine — графика и шейдеры"/>
                                 </ComboBox>
                                 <TextBlock x:Name="VersionInfoText" Text="Доступные версии появятся после загрузки официального списка." TextWrapping="Wrap" Foreground="#AEB8C8" FontSize="11" Margin="0,7,0,0"/>
                                 <TextBlock x:Name="StatusText" Text="Выбери версию и нажми «ИГРАТЬ», чтобы загрузить игровые файлы." TextWrapping="Wrap" Foreground="#D0D7E2" FontSize="12" Margin="0,12,0,0"/>
