@@ -6,7 +6,7 @@
         Background="{StaticResource BgBrush}" Foreground="#F5F7FA">
     <Window.Resources>
         <Style x:Key="NavButton" TargetType="Button">
-            <Setter Property="Foreground" Value="#AAB1BE"/>
+            <Setter Property="Foreground" Value="#C7CEDA"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FontSize" Value="14"/>
@@ -14,6 +14,29 @@
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Margin" Value="0,3"/>
+        </Style>
+        <Style TargetType="{x:Type ComboBoxItem}">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="#202631"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="MinHeight" Value="32"/>
+            <Style.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" Value="#354252"/>
+                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#19F58A"/>
+                    <Setter Property="Foreground" Value="#071A12"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="{x:Type ComboBox}">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="#202631"/>
+            <Setter Property="BorderBrush" Value="#586477"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8"/>
         </Style>
     </Window.Resources>
     <Grid Margin="16">
@@ -49,7 +72,7 @@
                 </StackPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <Ellipse Width="8" Height="8" Fill="{StaticResource GreenBrush}" Margin="0,0,8,0"/>
-                    <TextBlock Text="Лаунчер готов" Foreground="#C7CDD7" FontSize="12"/>
+                    <TextBlock Text="Лаунчер готов" Foreground="#E0E5ED" FontSize="12"/>
                 </StackPanel>
             </DockPanel>
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -82,26 +105,26 @@
                                 </Border>
                                 <TextBlock Text="ТВОЙ МИР." FontSize="39" FontWeight="Black" Foreground="White"/>
                                 <TextBlock Text="ТВОИ ПРАВИЛА." FontSize="39" FontWeight="Black" Foreground="{StaticResource GreenBrush}"/>
-                                <TextBlock Text="Подготовься к игре — остальное впереди." FontSize="14" Foreground="#D0D5DF" Margin="0,10,0,0"/>
+                                <TextBlock Text="Подготовься к игре — остальное впереди." FontSize="14" Foreground="#E2E7EF" Margin="0,10,0,0"/>
                             </StackPanel>
-                            <Border VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,20,0" BorderBrush="#56616F" BorderThickness="1" Background="#70202731" CornerRadius="8" Padding="12,8">
-                                <TextBlock Text="JAVA EDITION" FontSize="10" FontWeight="Bold"/>
+                            <Border VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,20,0" BorderBrush="#687588" BorderThickness="1" Background="#70202731" CornerRadius="8" Padding="12,8">
+                                <TextBlock Text="JAVA EDITION" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF"/>
                             </Border>
-                            <TextBlock Text="NEXCRAFT  /  SEASON 01" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,22,18" FontSize="10" Foreground="#AEB9C8"/>
+                            <TextBlock Text="NEXCRAFT  /  SEASON 01" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,22,18" FontSize="10" Foreground="#D2D9E4"/>
                         </Grid>
                     </Border>
                     <Grid Margin="0,20,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="240"/></Grid.ColumnDefinitions>
                         <Border Background="{StaticResource PanelBrush}" CornerRadius="14" Padding="20" Margin="0,0,16,0" BorderBrush="#303744" BorderThickness="1">
                             <StackPanel>
-                                <TextBlock Text="ГОТОВ К ЗАПУСКУ?" FontSize="11" Foreground="{StaticResource MutedBrush}"/>
+                                <TextBlock Text="ГОТОВ К ЗАПУСКУ?" FontSize="11" Foreground="#C0C8D5"/>
                                 <TextBlock Text="Выбери версию Minecraft" FontSize="20" FontWeight="SemiBold" Margin="0,8,0,16"/>
-                                <ComboBox x:Name="VersionSelector" Height="40" SelectedIndex="0" Background="#202631" Foreground="#F5F7FA" Padding="8">
+                                <ComboBox x:Name="VersionSelector" Height="40" SelectedIndex="0">
                                     <ComboBoxItem Content="1.21.1 — Vanilla"/>
                                     <ComboBoxItem Content="1.20.1 — Vanilla"/>
                                     <ComboBoxItem Content="1.16.5 — Vanilla"/>
                                 </ComboBox>
-                                <TextBlock x:Name="StatusText" Text="Выбери версию и нажми «ИГРАТЬ», чтобы загрузить игровые файлы." TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,12,0,0"/>
+                                <TextBlock x:Name="StatusText" Text="Выбери версию и нажми «ИГРАТЬ», чтобы загрузить игровые файлы." TextWrapping="Wrap" Foreground="#D0D7E2" FontSize="12" Margin="0,12,0,0"/>
                                 <ProgressBar x:Name="DownloadProgress" Height="6" Margin="0,10,0,0" Minimum="0" Maximum="100" Value="0" Visibility="Collapsed" Background="#252B35" Foreground="{StaticResource GreenBrush}" BorderThickness="0"/>
                             </StackPanel>
                         </Border>
@@ -110,13 +133,13 @@
                                 <StackPanel>
                                     <TextBlock Text="СЕРВЕРНАЯ СБОРКА" FontSize="10" Foreground="{StaticResource GreenBrush}"/>
                                     <TextBlock Text="Моды — скоро" FontSize="17" FontWeight="SemiBold" Margin="0,8,0,4"/>
-                                    <TextBlock Text="Подготовим автоматическую установку и обновление модов." TextWrapping="Wrap" Foreground="#B5C0C9" FontSize="11"/>
+                                    <TextBlock Text="Подготовим автоматическую установку и обновление модов." TextWrapping="Wrap" Foreground="#D0D8E0" FontSize="12"/>
                                 </StackPanel>
                             </Border>
                             <Button x:Name="PlayButton" Height="66" Background="{StaticResource GreenBrush}" Foreground="#092318" BorderThickness="0" FontSize="25" FontWeight="Black" Content="▶  ИГРАТЬ" Cursor="Hand" Click="Play_Click">
                                 <Button.Template><ControlTemplate TargetType="Button"><Border Background="{TemplateBinding Background}" CornerRadius="12"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></ControlTemplate></Button.Template>
                             </Button>
-                            <TextBlock Text="ПЕРВАЯ УСТАНОВКА СКАЧАЕТ ФАЙЛЫ ИГРЫ" TextAlignment="Center" TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" FontSize="9" Margin="0,10,0,0"/>
+                            <TextBlock Text="ПЕРВАЯ УСТАНОВКА СКАЧАЕТ ФАЙЛЫ ИГРЫ" TextAlignment="Center" TextWrapping="Wrap" Foreground="#C0C8D5" FontSize="10" Margin="0,10,0,0"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
