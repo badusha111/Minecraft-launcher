@@ -164,7 +164,7 @@
                                     </Border>
                                 </Grid>
                                 <Border Background="#171522" BorderBrush="#B89552" BorderThickness="1" CornerRadius="9" Padding="3">
-                                    <ComboBox x:Name="VersionSelector" Height="42" SelectedIndex="0" IsTextSearchEnabled="True" BorderThickness="0" Background="#171522" Foreground="#F0D9A0" ToolTip="Выбери версию Minecraft Java Edition"/>
+                                    <ComboBox x:Name="VersionSelector" Height="42" SelectedIndex="0" IsTextSearchEnabled="True" BorderThickness="0" Background="#171522" Foreground="#C084FC" ToolTip="Выбери версию Minecraft Java Edition"/>
                                 </Border>
                                 <Grid Margin="0,14,0,7">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
@@ -172,7 +172,7 @@
                                     <TextBlock Grid.Column="1" Text="PREMIUM SELECT" FontSize="9" FontWeight="Bold" Foreground="#A996C9" VerticalAlignment="Center"/>
                                 </Grid>
                                 <Border Background="#171522" BorderBrush="#B89552" BorderThickness="1" CornerRadius="9" Padding="3">
-                                    <ComboBox x:Name="LoaderSelector" Height="42" SelectedIndex="0" BorderThickness="0" Background="#171522" Foreground="#F0D9A0" ToolTip="Выбери обычную игру или загрузчик модов">
+                                    <ComboBox x:Name="LoaderSelector" Height="42" SelectedIndex="0" BorderThickness="0" Background="#171522" Foreground="#C084FC" ToolTip="Выбери обычную игру или загрузчик модов">
                                         <ComboBoxItem Content="Vanilla  ·  Обычная игра"/>
                                         <ComboBoxItem Content="Fabric  ·  Лёгкий загрузчик"/>
                                         <ComboBoxItem Content="Forge  ·  Продвинутые моды"/>
