@@ -74,7 +74,7 @@ public sealed class MainWindow : Window
         header.Children.Add(brandHeader);
         var ready = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
         ready.Children.Add(new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Background = Brush("#19F58A"), VerticalAlignment = VerticalAlignment.Center });
-        ready.Children.Add(new TextBlock { Text = "Лаунчер готов", FontSize = 12, Foreground = Brush("#E0E5ED"), VerticalAlignment = VerticalAlignment.Center });
+        ready.Children.Add(new TextBlock { Text = "Готов к входу", FontSize = 12, Foreground = Brush("#E0E5ED"), VerticalAlignment = VerticalAlignment.Center });
         Grid.SetColumn(ready, 1);
         header.Children.Add(ready);
         right.Children.Add(header);
