@@ -301,7 +301,7 @@ public sealed class MainWindow : Window
             output = output.Trim();
             await Dispatcher.UIThread.InvokeAsync(() =>
                 _status.Text = process.ExitCode == 0 && !string.IsNullOrWhiteSpace(output)
-                    ? $"Java обнаружена: {output.Split('\\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()}"
+                    ? $"Java обнаружена: {output.Split((char)10, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()}"
                     : "Java не найдена или не запускается. Для современных версий Minecraft обычно требуется Java 21; для старых версий требования отличаются.");
         }
         catch (Exception)
