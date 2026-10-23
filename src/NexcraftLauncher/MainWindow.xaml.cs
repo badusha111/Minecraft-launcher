@@ -25,29 +25,12 @@ public partial class MainWindow : Window
         InitializeComponent();
         _settings = _settingsService.Load();
         
-        // Принудительно скрываем кнопку входа Microsoft, если она осталась в UI
-        if (SignInButton != null) SignInButton.Visibility = Visibility.Collapsed;
-        
         PlayerNicknameTextBox.Text = _settings.PlayerNickname;
         RestoreSelectedVersion();
         
-        ModeDescriptionText.Text = "Свободный запуск Minecraft без лицензии. Доступна игра в одиночном режиме и на бесплатных серверах.";
-        PlayButton.Content = "▶  ИГРАТЬ БЕЗ ЛИЦЕНЗИИ";
         StatusText.Text = "Введи свой ник, выбери версию игры и нажми играть.";
     }
 
-    // Возвращаем пустую заглушку для старой кнопки входа, чтобы XAML не выдавал ошибку L147
-    private void SignIn_Click(object sender, RoutedEventArgs e)
-    {
-        StatusText.Text = "В NEXCRAFT доступен только оффлайн-режим игры.";
-    }
-
-    private void MicrosoftMode_Click(object sender, RoutedEventArgs e)
-    {
-        StatusText.Text = "В NEXCRAFT доступен только оффлайн-режим игры.";
-    }
-
-    private void OfflineMode_Click(object sender, RoutedEventArgs e) { }
     private void Library_Click(object sender, RoutedEventArgs e) { }
     private void Mods_Click(object sender, RoutedEventArgs e) { }
     private void Settings_Click(object sender, RoutedEventArgs e) { }
