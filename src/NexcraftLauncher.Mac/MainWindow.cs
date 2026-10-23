@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Diagnostics;
 using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
@@ -12,6 +13,7 @@ public sealed class MainWindow : Window
 {
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(20) };
     private readonly string _gameDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".minecraft");
+    private readonly string _settingsFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "NEXCRAFT", "settings.json");
     private readonly StackPanel _mainContent = new() { Spacing = 12 };
     private readonly TextBlock _status = new() { Text = "NEXCRAFT для macOS · готов к настройке", Foreground = Brush("#B8C1D0"), TextWrapping = TextWrapping.Wrap };
     private readonly ComboBox _versions = new() { MinWidth = 210 };
@@ -51,6 +53,8 @@ public sealed class MainWindow : Window
         Grid.SetColumn(right, 1);
         root.Children.Add(right);
         Content = root;
+        LoadSettings();
+        _nickname.TextChanged += (_, _) => SaveSettings();
         ShowHome();
         Opened += async (_, _) => await LoadVersionsAsync();
     }
@@ -105,8 +109,60 @@ public sealed class MainWindow : Window
         _status.Text = "Выбери версию. Для запуска потребуется официальная авторизация Minecraft.";
     }
 
-    private void PlayNotReady(object? sender, Avalonia.Interactivity.RoutedEventArgs e) =>
-        _status.Text = "Перенос интерфейса готовится. Следующий этап — официальный вход Microsoft, установка Java и запуск выбранной версии.";
+    private void PlayNotReady(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        SaveSettings();
+        var nickname = _nickname.Text?.Trim() ?? string.Empty;
+        if (nickname.Length == 0)
+        {
+            _status.Text = "Сначала введи имя игрока.";
+            return;
+        }
+        _status.Text = "Интерфейс готов. Для запуска выбранной версии нужно подключить официальный вход Microsoft, установку Java и проверку игровых файлов.";
+    }
+
+    private void LoadSettings()
+    {
+        try
+        {
+            if (!File.Exists(_settingsFile)) return;
+            using var document = JsonDocument.Parse(File.ReadAllText(_settingsFile));
+            if (document.RootElement.TryGetProperty("nickname", out var nickname))
+                _nickname.Text = nickname.GetString() ?? string.Empty;
+        }
+        catch
+        {
+            // A damaged settings file must not prevent the launcher from opening.
+        }
+    }
+
+    private void SaveSettings()
+    {
+        try
+        {
+            var directory = Path.GetDirectoryName(_settingsFile)!;
+            Directory.CreateDirectory(directory);
+            File.WriteAllText(_settingsFile, JsonSerializer.Serialize(new { nickname = _nickname.Text?.Trim() ?? string.Empty }, new JsonSerializerOptions { WriteIndented = true }));
+        }
+        catch
+        {
+            // Settings are optional; UI remains usable if the file cannot be written.
+        }
+    }
+
+    private void OpenGameFolder()
+    {
+        try
+        {
+            Directory.CreateDirectory(_gameDirectory);
+            Process.Start(new ProcessStartInfo { FileName = "open", ArgumentList = { _gameDirectory }, UseShellExecute = false });
+            _status.Text = "Открыта папка Minecraft в Finder.";
+        }
+        catch (Exception ex)
+        {
+            _status.Text = $"Не удалось открыть папку игры: {ex.Message}";
+        }
+    }
 
     private void ShowMods()
     {
@@ -143,8 +199,11 @@ public sealed class MainWindow : Window
         PreparePage("Настройки", "Основные параметры приложения.");
         _mainContent.Children.Add(new TextBlock { Text = "Папка игры", Foreground = Brush("#B8C1D0") });
         _mainContent.Children.Add(new TextBlock { Text = _gameDirectory, TextWrapping = TextWrapping.Wrap });
+        var openFolder = NavButton("Открыть папку игры в Finder", OpenGameFolder);
+        openFolder.HorizontalContentAlignment = HorizontalAlignment.Center;
+        _mainContent.Children.Add(openFolder);
         _mainContent.Children.Add(new TextBlock { Text = "Поддерживаются сборки для Apple Silicon и Intel.", Foreground = Brush("#B8C1D0"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 10) });
-        _status.Text = "Сохранение настроек и управление памятью будут подключены при переносе общей логики.";
+        _status.Text = "Настройки ника сохраняются автоматически на этом Mac.";
     }
 
     private static Border Card(string title, string subtitle) => new()
