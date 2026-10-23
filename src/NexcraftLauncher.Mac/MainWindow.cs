@@ -8,6 +8,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
+using CmlLib.Core.ProcessBuilder;
 
 namespace NexcraftLauncherMac;
 
