@@ -86,7 +86,7 @@
                 </StackPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <Ellipse Width="8" Height="8" Fill="{StaticResource GreenBrush}" Margin="0,0,8,0"/>
-                    <TextBlock Text="Лаунчер готов" Foreground="#E0E5ED" FontSize="12"/>
+                    <TextBlock Text="Готов к входу" Foreground="#E0E5ED" FontSize="12"/>
                 </StackPanel>
             </DockPanel>
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
