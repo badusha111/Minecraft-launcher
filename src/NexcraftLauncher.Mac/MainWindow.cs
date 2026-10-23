@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Path = System.IO.Path;
 using Avalonia.Layout;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
@@ -152,7 +153,7 @@ public sealed class MainWindow : Window
         {
             Content = title,
             HorizontalContentAlignment = HorizontalAlignment.Left,
-            Background = Brush("#202034"),
+            Background = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative), GradientStops = { new GradientStop(Color.Parse("#28213F"), 0), new GradientStop(Color.Parse("#171522"), 1) } },
             Foreground = Brushes.White,
             BorderBrush = Brush("#51427D"),
             Padding = new Thickness(12),
@@ -166,9 +167,22 @@ public sealed class MainWindow : Window
         if (navigation)
         {
             _navigationButtons.Add(button);
-            button.PointerEntered += (_, _) => button.Foreground = Brush("#080611");
-            button.PointerExited += (_, _) => button.Foreground = Brush(ReferenceEquals(_activeNavigationButton, button) ? "#C084FC" : "#C7CEDA");
-            button.PointerPressed += (_, _) => button.Foreground = Brush("#C084FC");
+            button.PointerEntered += (_, _) =>
+            {
+                button.Foreground = Brush("#080611");
+                button.Background = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative), GradientStops = { new GradientStop(Color.Parse("#A78BFA"), 0), new GradientStop(Color.Parse("#7C3AED"), 1) } };
+            };
+            button.PointerExited += (_, _) =>
+            {
+                button.Foreground = Brush(ReferenceEquals(_activeNavigationButton, button) ? "#C084FC" : "#C7CEDA");
+                button.Background = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative), GradientStops = { new GradientStop(Color.Parse(ReferenceEquals(_activeNavigationButton, button) ? "#30204F" : "#28213F"), 0), new GradientStop(Color.Parse("#151522"), 1) } };
+            };
+            button.PointerPressed += (_, _) =>
+            {
+                button.Foreground = Brush("#C084FC");
+                button.Opacity = 0.78;
+            };
+            button.PointerReleased += (_, _) => button.Opacity = 1;
         }
         return button;
     }
@@ -179,7 +193,7 @@ public sealed class MainWindow : Window
         foreach (var button in _navigationButtons)
         {
             var selected = ReferenceEquals(button, active);
-            button.Background = Brush(selected ? "#30204F" : "#151522");
+            button.Background = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative), GradientStops = { new GradientStop(Color.Parse(selected ? "#4C2A7A" : "#28213F"), 0), new GradientStop(Color.Parse(selected ? "#25153F" : "#151522"), 1) } };
             button.Foreground = Brush(selected ? "#C084FC" : "#C7CEDA");
             button.BorderBrush = Brush(selected ? "#8B5CF6" : "#151522");
         }
@@ -382,12 +396,27 @@ public sealed class MainWindow : Window
             }
         });
         _play.Height = 66;
-        _play.Background = Brush("#19F58A");
+        _play.Background = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative), GradientStops = { new GradientStop(Color.Parse("#35F7A0"), 0), new GradientStop(Color.Parse("#0ABF68"), 1) } };
         _play.Foreground = Brush("#092318");
         _play.BorderThickness = new Thickness(0);
         _play.FontSize = 25;
         _play.FontWeight = FontWeight.Black;
         _play.HorizontalContentAlignment = HorizontalAlignment.Center;
+        _play.BorderBrush = Brush("#5BFFB1");
+        _play.BorderThickness = new Thickness(1);
+        _play.CornerRadius = new CornerRadius(12);
+        _play.PointerEntered += (_, _) => _play.Opacity = 0.92;
+        _play.PointerExited += (_, _) => _play.Opacity = 1;
+        _play.PointerPressed += (_, _) =>
+        {
+            _play.Opacity = 0.78;
+            _play.RenderTransform = new ScaleTransform(0.98, 0.96);
+        };
+        _play.PointerReleased += (_, _) =>
+        {
+            _play.Opacity = 1;
+            _play.RenderTransform = null;
+        };
         _play.Click -= PlayMinecraft;
         _play.Click += PlayMinecraft;
         right.Children.Add(_play);
