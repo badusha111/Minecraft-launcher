@@ -94,7 +94,7 @@ public partial class MainWindow : Window
             var status = new Progress<string>(message => StatusText.Text = message);
             var progress = new Progress<double>(value => DownloadProgress.Value = Math.Clamp(value * 100, 0, 100));
             await _installationService.InstallAsync(version, _settings.GameDirectory, status, progress);
-            StatusText.Text = $"Ник {nickname} сохранён. Файлы Minecraft {version} загружены; полноценный запуск и подключение к серверу — следующий этап."
+            StatusText.Text = $"Ник {nickname} сохранён. Файлы Minecraft {version} загружены; полноценный запуск и подключение к серверу — следующий этап.";
             MessageBox.Show(
                 $"Файлы Minecraft {version} загружены и проверены.\nНик NEXCRAFT: {nickname}\n\nПапка игры: {_settings.GameDirectory}\n\nСледующий этап — полноценный запуск и подключение к серверу.",
                 "NEXCRAFT — Установка завершена", MessageBoxButton.OK, MessageBoxImage.Information);
