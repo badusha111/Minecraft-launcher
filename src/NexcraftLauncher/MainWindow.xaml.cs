@@ -634,6 +634,14 @@ public partial class MainWindow : Window
             var installerUrl = $"https://maven.minecraftforge.net/net/minecraftforge/forge/{fullVersion}/forge-{fullVersion}-installer.jar";
             var installerPath = Path.Combine(Path.GetTempPath(), $"forge-{fullVersion}-installer.jar");
             await File.WriteAllBytesAsync(installerPath, await http.GetByteArrayAsync(installerUrl));
+
+            // Forge requires launcher_profiles.json even though this launcher manages its own instances.
+            // Create the minimal profile container only when missing; Forge will inject its profile.
+            Directory.CreateDirectory(gameDir);
+            var launcherProfilesPath = Path.Combine(gameDir, "launcher_profiles.json");
+            if (!File.Exists(launcherProfilesPath))
+                await File.WriteAllTextAsync(launcherProfilesPath, "{\\n  \\"profiles\\": {},\\n  \\"settings\\": {}\\n}");
+
             var start = new ProcessStartInfo(await EnsureJavaExecutableAsync(gameVersion, gameDir)) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
             start.ArgumentList.Add("-jar");
             start.ArgumentList.Add(installerPath);
