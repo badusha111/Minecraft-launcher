@@ -4,7 +4,7 @@ An independent Minecraft: Java Edition launcher for Windows, with a dark gaming 
 
 ## Current status
 
-Early development. The WPF interface prototype and a first settings dialog are implemented. The launcher does **not yet download Minecraft itself, authenticate an account, or start the game**.
+Early development. The WPF interface, settings dialog, official version metadata checks, and a verified download pipeline for the Minecraft client, libraries, and assets are implemented. Microsoft account authentication and starting the game are not implemented yet.
 
 ## Implemented foundation
 
@@ -12,7 +12,7 @@ Early development. The WPF interface prototype and a first settings dialog are i
 - Dark home screen and Minecraft version selector prototype.
 - Settings dialog for the game directory, minimum/maximum memory values, and close-on-launch preference.
 - Persistent JSON settings stored under the current Windows user's application data directory.
-- Versioned server modpack manifest model and example.
+- Official Mojang version metadata lookup and Java version checks.\n- Minecraft installation pipeline downloads the version JSON, client JAR, library artifacts (including native classifiers), asset index, and asset objects over HTTPS; verifies official SHA-1/size metadata where provided; and writes files atomically.\n- Installation progress is shown in the launcher UI.\n- Versioned server modpack manifest model and example.
 - Manifest metadata validation for safe relative paths, HTTPS URLs, unique paths, and SHA-256 format.
 - A single-file modpack downloader that enforces HTTPS, limits file size, checks SHA-256 before installation, and rejects paths escaping the selected instance directory.
 - GitHub Actions workflow that builds and publishes a Windows x64 artifact.
