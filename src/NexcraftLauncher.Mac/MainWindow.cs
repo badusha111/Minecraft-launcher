@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
+using CmlLib.Core;
 
 namespace NexcraftLauncherMac;
 
@@ -18,7 +19,8 @@ public sealed class MainWindow : Window
     private readonly TextBlock _status = new() { Text = "NEXCRAFT для macOS · готов к настройке", Foreground = Brush("#B8C1D0"), TextWrapping = TextWrapping.Wrap };
     private readonly ComboBox _versions = new() { MinWidth = 210 };
     private readonly TextBox _nickname = new() { Watermark = "Ник игрока", MaxLength = 16 };
-    private readonly Button _play = new() { Content = "Играть", HorizontalContentAlignment = HorizontalAlignment.Center };
+    private readonly Button _play = new() { Content = "Установить версию", HorizontalContentAlignment = HorizontalAlignment.Center };
+    private bool _isInstalling;
 
     public MainWindow()
     {
@@ -109,16 +111,53 @@ public sealed class MainWindow : Window
         _status.Text = "Выбери версию. Для запуска потребуется официальная авторизация Minecraft.";
     }
 
-    private void PlayNotReady(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void PlayNotReady(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        SaveSettings();
+        if (_isInstalling) return;
         var nickname = _nickname.Text?.Trim() ?? string.Empty;
-        if (nickname.Length == 0)
+        if (!System.Text.RegularExpressions.Regex.IsMatch(nickname, @"^[A-Za-z0-9_]{3,16}$"))
         {
-            _status.Text = "Сначала введи имя игрока.";
+            _status.Text = "Введи ник длиной 3–16 символов (латиница, цифры и подчёркивание), затем установи версию.";
             return;
         }
-        _status.Text = "Интерфейс готов. Для запуска выбранной версии нужно подключить официальный вход Microsoft, установку Java и проверку игровых файлов.";
+
+        var version = _versions.SelectedItem?.ToString();
+        if (string.IsNullOrWhiteSpace(version))
+        {
+            _status.Text = "Сначала выбери официальную версию Minecraft.";
+            return;
+        }
+
+        SaveSettings();
+        _isInstalling = true;
+        _play.IsEnabled = false;
+        _play.Content = "Подготовка…";
+        try
+        {
+            Directory.CreateDirectory(_gameDirectory);
+            var path = new MinecraftPath(_gameDirectory);
+            var launcher = new MinecraftLauncher(path);
+            launcher.FileProgressChanged += (_, args) =>
+            {
+                var percentage = args.TotalTasks > 0 ? (int)((double)args.ProgressedTasks / args.TotalTasks * 100) : 0;
+                Dispatcher.UIThread.Post(() => _status.Text = $"Установка Minecraft {version}: {args.ProgressedTasks}/{args.TotalTasks} ({percentage}%)");
+            };
+
+            _status.Text = $"Подготавливаем официальные файлы Minecraft {version}…";
+            await launcher.InstallAsync(version);
+            _status.Text = $"Minecraft {version} установлен. Следующий этап — официальный вход Microsoft и безопасный запуск игры.";
+            _play.Content = "Версия установлена";
+        }
+        catch (Exception ex)
+        {
+            _status.Text = $"Не удалось установить Minecraft: {ex.Message}";
+            _play.Content = "Повторить установку";
+        }
+        finally
+        {
+            _isInstalling = false;
+            _play.IsEnabled = true;
+        }
     }
 
     private void LoadSettings()
