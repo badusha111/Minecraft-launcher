@@ -250,8 +250,21 @@ public partial class MainWindow : Window
         var browse = new Button { Content = "Обзор…", Padding = new Thickness(14, 8, 14, 8), Margin = new Thickness(0, 8, 0, 16), HorizontalAlignment = HorizontalAlignment.Left };
         browse.Click += (_, _) =>
         {
-            var dialog = new OpenFolderDialog { Title = "Выберите папку для файлов Minecraft", Multiselect = false, InitialDirectory = Directory.Exists(folder.Text) ? folder.Text : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) };
-            if (dialog.ShowDialog() == true) folder.Text = dialog.FolderName;
+            var dialog = new OpenFileDialog
+            {
+                Title = "Выберите папку для файлов Minecraft",
+                CheckFileExists = false,
+                CheckPathExists = true,
+                FileName = "Выбрать эту папку",
+                ValidateNames = false,
+                Filter = "Папка|*.*",
+                InitialDirectory = Directory.Exists(folder.Text) ? folder.Text : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                var selectedFolder = Path.GetDirectoryName(dialog.FileName);
+                if (!string.IsNullOrWhiteSpace(selectedFolder)) folder.Text = selectedFolder;
+            }
         };
         content.Children.Add(browse);
         content.Children.Add(new TextBlock { Text = "Память для Minecraft (МБ)", Margin = new Thickness(0, 0, 0, 6) });
