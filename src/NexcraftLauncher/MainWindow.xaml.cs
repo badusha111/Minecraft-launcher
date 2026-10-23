@@ -4,6 +4,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Diagnostics;
+using System.Net.Http;
+using System.Text.Json;
 using Microsoft.Win32;
 using NexcraftLauncher.Models;
 using NexcraftLauncher.Services;
@@ -332,6 +334,75 @@ public partial class MainWindow : Window
         StatusText.Text = "Главная открыта. Выбери версию и нажми «ИГРАТЬ».";
     }
 
+
+    private async Task<string> PrepareLoaderVersionAsync(string loaderLabel, string gameVersion, string gameDir, MinecraftPath path)
+    {
+        if (loaderLabel.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase))
+            return gameVersion;
+
+        if (loaderLabel.StartsWith("Fabric", StringComparison.OrdinalIgnoreCase))
+        {
+            using var http = new HttpClient();
+            var profileUrl = $"https://meta.fabricmc.net/v2/versions/loader/{Uri.EscapeDataString(gameVersion)}/profile/json";
+            using var response = await http.GetAsync(profileUrl);
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync();
+            using var document = JsonDocument.Parse(json);
+            var profileName = document.RootElement.GetProperty("id").GetString();
+            if (string.IsNullOrWhiteSpace(profileName))
+                throw new InvalidDataException("Fabric не вернул имя профиля.");
+            var jsonPath = path.GetVersionJsonPath(profileName);
+            Directory.CreateDirectory(Path.GetDirectoryName(jsonPath)!);
+            await File.WriteAllTextAsync(jsonPath, json);
+            return profileName;
+        }
+
+        if (loaderLabel.StartsWith("Forge", StringComparison.OrdinalIgnoreCase))
+        {
+            using var http = new HttpClient();
+            using var promotionsResponse = await http.GetAsync("https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json");
+            promotionsResponse.EnsureSuccessStatusCode();
+            using var promotions = JsonDocument.Parse(await promotionsResponse.Content.ReadAsStringAsync());
+            var promos = promotions.RootElement.GetProperty("promos");
+            if (!promos.TryGetProperty(gameVersion + "-recommended", out var forgeVersion) &&
+                !promos.TryGetProperty(gameVersion + "-latest", out forgeVersion))
+                throw new InvalidOperationException($"Для Minecraft {gameVersion} не найден подходящий Forge.");
+            var forgeBuild = forgeVersion.GetString();
+            if (string.IsNullOrWhiteSpace(forgeBuild)) throw new InvalidDataException("Не удалось определить версию Forge.");
+            var fullVersion = $"{gameVersion}-{forgeBuild}";
+            var installerUrl = $"https://maven.minecraftforge.net/net/minecraftforge/forge/{fullVersion}/forge-{fullVersion}-installer.jar";
+            var installerPath = Path.Combine(Path.GetTempPath(), $"forge-{fullVersion}-installer.jar");
+            await File.WriteAllBytesAsync(installerPath, await http.GetByteArrayAsync(installerUrl));
+            var start = new ProcessStartInfo("java") { UseShellExecute = false, CreateNoWindow = true };
+            start.ArgumentList.Add("-jar"); start.ArgumentList.Add(installerPath);
+            start.ArgumentList.Add("--installClient"); start.ArgumentList.Add("--installDir"); start.ArgumentList.Add(gameDir);
+            using var installer = Process.Start(start) ?? throw new InvalidOperationException("Не удалось запустить Java для Forge. Установи подходящую Java.");
+            await installer.WaitForExitAsync();
+            if (installer.ExitCode != 0) throw new InvalidOperationException($"Установщик Forge завершился с кодом {installer.ExitCode}.");
+            var versionsDir = Path.Combine(gameDir, "versions");
+            var installed = Directory.Exists(versionsDir) ? Directory.GetDirectories(versionsDir, gameVersion + "-forge-*").OrderByDescending(Directory.GetLastWriteTimeUtc).FirstOrDefault() : null;
+            if (installed is null) throw new DirectoryNotFoundException("Профиль Forge не найден после установки.");
+            return Path.GetFileName(installed);
+        }
+
+        if (loaderLabel.StartsWith("OptiFine", StringComparison.OrdinalIgnoreCase))
+        {
+            var dialog = new OpenFileDialog { Title = "Выбери установщик OptiFine для выбранной версии Minecraft", Filter = "Java installer (*.jar)|*.jar", CheckFileExists = true };
+            if (dialog.ShowDialog(this) != true) throw new OperationCanceledException("Установка OptiFine отменена.");
+            var start = new ProcessStartInfo("java") { UseShellExecute = false, CreateNoWindow = true };
+            start.ArgumentList.Add("-jar"); start.ArgumentList.Add(dialog.FileName); start.ArgumentList.Add("-install");
+            using var installer = Process.Start(start) ?? throw new InvalidOperationException("Не удалось запустить Java для OptiFine. Установи подходящую Java.");
+            await installer.WaitForExitAsync();
+            if (installer.ExitCode != 0) throw new InvalidOperationException($"Установщик OptiFine завершился с кодом {installer.ExitCode}.");
+            var versionsDir = Path.Combine(gameDir, "versions");
+            var installed = Directory.Exists(versionsDir) ? Directory.GetDirectories(versionsDir, gameVersion + "-OptiFine*").OrderByDescending(Directory.GetLastWriteTimeUtc).FirstOrDefault() : null;
+            if (installed is null) throw new DirectoryNotFoundException("Профиль OptiFine не найден. Проверь, что установщик подходит к выбранной версии.");
+            return Path.GetFileName(installed);
+        }
+
+        throw new NotSupportedException("Неизвестный загрузчик Minecraft.");
+    }
+
     private void RestoreSelectedVersion()
     {
         foreach (ComboBoxItem item in VersionSelector.Items)
@@ -433,6 +504,10 @@ public partial class MainWindow : Window
 
             StatusText.Text = "Анализ файлов и загрузка компонентов...";
             
+            string selectedLoader = (LoaderSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Vanilla";
+            version = await PrepareLoaderVersionAsync(selectedLoader, version, gameDir, path);
+            StatusText.Text = $"Подготавливаем {selectedLoader.Split('—')[0].Trim()} для Minecraft {version}...";
+            await launcher.InstallAsync(version);
             Process process = await launcher.InstallAndBuildProcessAsync(version, launchOption);
             
             StatusText.Text = "Запуск игрового клиента...";
