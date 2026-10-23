@@ -7,6 +7,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using CmlLib.Core;
+using CmlLib.Core.Auth;
 
 namespace NexcraftLauncherMac;
 
@@ -19,8 +20,11 @@ public sealed class MainWindow : Window
     private readonly TextBlock _status = new() { Text = "NEXCRAFT для macOS · готов к настройке", Foreground = Brush("#B8C1D0"), TextWrapping = TextWrapping.Wrap };
     private readonly ComboBox _versions = new() { MinWidth = 210 };
     private readonly TextBox _nickname = new() { Watermark = "Ник игрока", MaxLength = 16 };
-    private readonly Button _play = new() { Content = "Установить версию", HorizontalContentAlignment = HorizontalAlignment.Center };
+    private readonly Button _play = new() { Content = "Играть", HorizontalContentAlignment = HorizontalAlignment.Center };
+    private readonly Button _login = new() { Content = "Войти через Microsoft", HorizontalContentAlignment = HorizontalAlignment.Center };
+    private AuthenticatedMinecraftAccount? _account;
     private bool _isInstalling;
+    private bool _isSigningIn;
     private string? _savedVersion;
 
     public MainWindow()
@@ -103,19 +107,64 @@ public sealed class MainWindow : Window
         _mainContent.Children.Add(_nickname);
         _mainContent.Children.Add(new TextBlock { Text = "Версия Minecraft", Foreground = Brush("#B8C1D0"), Margin = new Thickness(0, 8, 0, 0) });
         _mainContent.Children.Add(_versions);
+        _login.Background = Brush("#29243B");
+        _login.Foreground = Brushes.White;
+        _login.Padding = new Thickness(18, 12);
+        _login.Click -= LoginWithMicrosoft;
+        _login.Click += LoginWithMicrosoft;
+        _mainContent.Children.Add(_login);
         _play.Background = Brush("#7C4DFF");
         _play.Foreground = Brushes.White;
         _play.Padding = new Thickness(18, 12);
         _play.Click -= PlayNotReady;
         _play.Click += PlayNotReady;
         _mainContent.Children.Add(_play);
-        _status.Text = "Выбери версию. Для запуска потребуется официальная авторизация Minecraft.";
+        _status.Text = _account is null
+            ? "Войди через Microsoft с аккаунтом, у которого есть Minecraft: Java Edition."
+            : $"Вход выполнен: {_account.Username}. Выбери версию и нажми «Играть».";
+    }
+
+    private async void LoginWithMicrosoft(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (_isSigningIn || _isInstalling) return;
+        _isSigningIn = true;
+        _login.IsEnabled = false;
+        _login.Content = "Подключение…";
+        try
+        {
+            var auth = new MicrosoftMinecraftAuthService();
+            var progress = new Progress<string>(message => Dispatcher.UIThread.Post(() => _status.Text = message));
+            _account = await auth.SignInAsync(
+                message => Dispatcher.UIThread.Post(() => _status.Text = message),
+                progress);
+            _nickname.Text = _account.Username;
+            SaveSettings();
+            _status.Text = $"Вход выполнен: {_account.Username}. Лицензия Minecraft Java Edition подтверждена.";
+            _login.Content = $"Выполнен вход: {_account.Username}";
+        }
+        catch (Exception ex)
+        {
+            _account = null;
+            _status.Text = $"Не удалось войти через Microsoft: {ex.Message}";
+            _login.Content = "Повторить вход Microsoft";
+        }
+        finally
+        {
+            _isSigningIn = false;
+            _login.IsEnabled = true;
+        }
     }
 
     private async void PlayNotReady(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (_isInstalling) return;
-        var nickname = _nickname.Text?.Trim() ?? string.Empty;
+        if (_isInstalling || _isSigningIn) return;
+        if (_account is null)
+        {
+            _status.Text = "Сначала нажми «Войти через Microsoft» и подтверди вход в браузере. Нужна лицензия Minecraft: Java Edition.";
+            return;
+        }
+
+        var nickname = _account.Username;
         if (!System.Text.RegularExpressions.Regex.IsMatch(nickname, @"^[A-Za-z0-9_]{3,16}$"))
         {
             _status.Text = "Введи ник длиной 3–16 символов (латиница, цифры и подчёркивание), затем установи версию.";
@@ -145,9 +194,22 @@ public sealed class MainWindow : Window
             };
 
             _status.Text = $"Подготавливаем официальные файлы Minecraft {version}…";
+            _status.Text = $"Загружаю и проверяю файлы Minecraft {version}…";
             await launcher.InstallAsync(version);
-            _status.Text = $"Minecraft {version} установлен. Следующий этап — официальный вход Microsoft и безопасный запуск игры.";
-            _play.Content = "Версия установлена";
+
+            _status.Text = "Подготавливаю официальный профиль и запускаю Minecraft…";
+            var session = new MSession(_account.Username, _account.AccessToken, _account.Uuid);
+            session.UserType = "msa";
+            var launchOptions = new MLaunchOption
+            {
+                Session = session,
+                MinimumRamMb = 1024,
+                MaximumRamMb = 4096
+            };
+            var process = await launcher.InstallAndBuildProcessAsync(version, launchOptions);
+            process.Start();
+            _status.Text = $"Minecraft {version} запущен для аккаунта {_account.Username}.";
+            _play.Content = "Играть";
         }
         catch (Exception ex)
         {
