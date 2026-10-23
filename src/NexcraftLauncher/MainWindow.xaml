@@ -144,7 +144,7 @@
                                     <TextBlock Text="Подготовим автоматическую установку и обновление модов." TextWrapping="Wrap" Foreground="#D0D8E0" FontSize="12"/>
                                 </StackPanel>
                             </Border>
-                            <Button x:Name="SignInButton" Height="42" Margin="0,0,0,10" Background="#272D3A" Foreground="#F5F7FA" BorderBrush="#586477" BorderThickness="1" FontSize="13" FontWeight="SemiBold" Content="Войти через Microsoft" Cursor="Hand" Click="SignIn_Click"/>
+                            <Button x:Name="SignInButton" Height="42" Margin="0,0,0,10" Background="#272D3A" Foreground="#F5F7FA" BorderBrush="#586477" BorderThickness="1" FontSize="13" FontWeight="SemiBold" Content="Войти через Microsoft" Cursor="Hand"/>
                             <Button x:Name="PlayButton" Height="66" Background="{StaticResource GreenBrush}" Foreground="#092318" BorderThickness="0" FontSize="25" FontWeight="Black" Content="▶  ИГРАТЬ" Cursor="Hand" Click="Play_Click">
                                 <Button.Template><ControlTemplate TargetType="Button"><Border Background="{TemplateBinding Background}" CornerRadius="12"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></ControlTemplate></Button.Template>
                             </Button>
