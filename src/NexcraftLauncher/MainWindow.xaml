@@ -1,8 +1,8 @@
 <Window x:Class="NexcraftLauncher.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="NEXCRAFT Launcher" Width="1180" Height="720"
-        MinWidth="980" MinHeight="620" WindowStartupLocation="CenterScreen"
+        Title="NEXCRAFT Launcher" Width="1280" Height="780"
+        MinWidth="1040" MinHeight="680" WindowStartupLocation="CenterScreen"
         Background="{StaticResource BgBrush}" Foreground="#F5F7FA">
     <Window.Resources>
         <Style x:Key="NavButton" TargetType="Button">
@@ -52,21 +52,21 @@
         </Style>
     </Window.Resources>
     <Grid Margin="16">
-        <Grid.ColumnDefinitions><ColumnDefinition Width="188"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-        <Border Grid.ColumnSpan="2" CornerRadius="18" Background="#151922" BorderBrush="#303744" BorderThickness="1"/>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="200"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Border Grid.ColumnSpan="2" CornerRadius="18" Background="#0C1222" BorderBrush="#34365D" BorderThickness="1"/>
         <Grid Grid.Column="0">
-            <Grid.RowDefinitions><RowDefinition Height="90"/><RowDefinition Height="*"/><RowDefinition Height="72"/></Grid.RowDefinitions>
+            <Grid.RowDefinitions><RowDefinition Height="84"/><RowDefinition Height="*"/><RowDefinition Height="72"/></Grid.RowDefinitions>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="22,0,0,0">
                 <Border Width="34" Height="34" CornerRadius="9" Background="#173C31" BorderBrush="#19F58A" BorderThickness="1">
                     <TextBlock Text="N" FontSize="22" FontWeight="Black" Foreground="{StaticResource GreenBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="NEXCRAFT" FontSize="17" FontWeight="Bold"/>
-                    <TextBlock Text="MINECRAFT LAUNCHER" FontSize="8" Foreground="{StaticResource MutedBrush}"/>
+                    <TextBlock Text="NEXCRAFT" FontSize="18" FontWeight="Bold"/>
+                    <TextBlock Text="MINECRAFT LAUNCHER" FontSize="9" Foreground="{StaticResource MutedBrush}"/>
                 </StackPanel>
             </StackPanel>
             <StackPanel Grid.Row="1" Margin="12,12,12,0">
-                <Button x:Name="HomeNavButton" Style="{StaticResource NavButton}" Background="#20352F" Foreground="{StaticResource GreenBrush}" Content="⌂   Главная" Click="Home_Click"/>
+                <Button x:Name="HomeNavButton" Style="{StaticResource NavButton}" Background="#382078" Foreground="#DCCBFF" Content="⌂   Главная" Click="Home_Click"/>
                 <Button x:Name="ModsNavButton" Style="{StaticResource NavButton}" Content="◇   Моды и сборки" Click="Mods_Click"/>
                 <Button x:Name="LibraryNavButton" Style="{StaticResource NavButton}" Content="▣   Библиотека" Click="Library_Click"/>
                 <Button x:Name="SettingsNavButton" Style="{StaticResource NavButton}" Content="⚙   Настройки" Click="Settings_Click"/>
@@ -91,7 +91,7 @@
             </DockPanel>
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="26,8,26,24">
-                    <Border Height="320" CornerRadius="16" ClipToBounds="True" BorderBrush="#5B4B36" BorderThickness="1">
+                    <Border Height="270" CornerRadius="16" ClipToBounds="True" BorderBrush="#5B4B36" BorderThickness="1">
                         <Grid>
                             <Grid.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
