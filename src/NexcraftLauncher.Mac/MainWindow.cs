@@ -511,6 +511,8 @@ public sealed class MainWindow : Window
 
             _status.Text = $"Подготавливаем официальные файлы Minecraft {version}…";
             _status.Text = $"Загружаю и проверяю файлы Minecraft {version}…";
+            _status.Text = $"Подготавливаем базовую версию Minecraft {version}…";
+            await launcher.InstallAsync(version);
             version = await PrepareLoaderVersionAsync(_loaders.SelectedItem?.ToString() ?? "Vanilla", version, path);
             _status.Text = $"Устанавливаю компоненты выбранного профиля {version}…";
             await launcher.InstallAsync(version);
