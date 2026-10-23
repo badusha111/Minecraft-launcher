@@ -219,7 +219,7 @@ public sealed class MinecraftLaunchService
     }
 
     private static IEnumerable<string> SplitLegacyArguments(string arguments) =>
-        System.Text.RegularExpressions.Regex.Matches(arguments, @"[^s""']+|""[^""]*""|'[^']*'")
+        System.Text.RegularExpressions.Regex.Matches(arguments, @"[^\s""']+|""[^""]*""|'[^']*'")
             .Select(m => m.Value.Trim('"', '\''));
 
     private static string? GetString(JsonElement element, string name) =>
