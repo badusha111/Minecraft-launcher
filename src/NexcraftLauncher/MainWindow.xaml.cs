@@ -342,6 +342,10 @@ public partial class MainWindow : Window
     private static int RequiredJavaMajor(string gameVersion)
     {
         var parts = gameVersion.Split('.');
+        // Minecraft 26.1+ uses Java 25; do not treat modern version numbers as legacy 1.x.
+        if (parts.Length >= 2 && int.TryParse(parts[0], out var majorRelease) && majorRelease >= 26)
+            return 25;
+
         if (parts.Length >= 2 && parts[0] == "1" && int.TryParse(parts[1], out var minor))
         {
             if (minor >= 21) return 21;
@@ -371,6 +375,12 @@ public partial class MainWindow : Window
         var runtimeRoots = new[]
         {
             Path.Combine(gameDir, "runtime"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "Java", "JavaVirtualMachines"),
+            "/Library/Java/JavaVirtualMachines",
+            "/opt/homebrew/opt/openjdk@25",
+            "/opt/homebrew/opt/openjdk@21",
+            "/usr/local/opt/openjdk@25",
+            "/usr/local/opt/openjdk@21",
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft", "runtime"),
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Eclipse Adoptium"),
             @"C:\Program Files\Eclipse Adoptium",
@@ -428,6 +438,7 @@ public partial class MainWindow : Window
 
         string requirement = requiredMajor switch
         {
+            25 => "Java 25",
             21 => "Java 21",
             17 => "Java 17",
             16 => "Java 16",
