@@ -18,7 +18,7 @@ public partial class MainWindow : Window
 {
     private readonly LauncherSettingsService _settingsService = new();
     private readonly MinecraftMetadataService _metadataService = new();
-    private readonly LauncherSettings _settings;
+    private LauncherSettings _settings;
     private bool _isInstalling;
 
     public MainWindow()
@@ -80,7 +80,7 @@ public partial class MainWindow : Window
         var modsDirectory = Path.Combine(root, "mods");
         var files = Directory.Exists(modsDirectory)
             ? Directory.GetFiles(modsDirectory, "*.jar", SearchOption.TopDirectoryOnly)
-                .OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase).ToArray()
+                .OrderBy(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase).ToArray()
             : Array.Empty<string>();
 
         var content = new StackPanel { Margin = new Thickness(24) };
@@ -234,7 +234,7 @@ public partial class MainWindow : Window
         var settingsWindow = new SettingsWindow { Owner = this };
         if (settingsWindow.ShowDialog() == true)
         {
-            _settingsService.Save(_settingsService.Load());
+            _settings = _settingsService.Load();
             StatusText.Text = "Настройки сохранены.";
         }
     }
