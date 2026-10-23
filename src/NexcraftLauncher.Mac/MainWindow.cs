@@ -120,10 +120,10 @@ public sealed class MainWindow : Window
         layout.Children.Add(brand);
 
         var menu = new StackPanel { Spacing = 3, Margin = new Thickness(12, 12, 12, 0) };
-        menu.Children.Add(NavButton("⌂   Главная", ShowHome));
-        menu.Children.Add(NavButton("◇   Моды и сборки", ShowMods));
-        menu.Children.Add(NavButton("▣   Библиотека", ShowLibrary));
-        menu.Children.Add(NavButton("⚙   Настройки", ShowSettings));
+        menu.Children.Add(NavButton("⌂   Главная", ShowHome, true));
+        menu.Children.Add(NavButton("◇   Моды и сборки", ShowMods, true));
+        menu.Children.Add(NavButton("▣   Библиотека", ShowLibrary, true));
+        menu.Children.Add(NavButton("⚙   Настройки", ShowSettings, true));
         Grid.SetRow(menu, 1);
         layout.Children.Add(menu);
 
@@ -135,7 +135,7 @@ public sealed class MainWindow : Window
         return new Border { Background = Brush("#151922"), Child = layout };
     }
 
-    private Button NavButton(string title, Action action)
+    private Button NavButton(string title, Action action, bool navigation = false)
     {
         var button = new Button
         {
@@ -149,10 +149,10 @@ public sealed class MainWindow : Window
         };
         button.Click += (_, _) =>
         {
-            SetActiveNavigation(button);
+            if (navigation) SetActiveNavigation(button);
             action();
         };
-        _navigationButtons.Add(button);
+        if (navigation) _navigationButtons.Add(button);
         return button;
     }
 
