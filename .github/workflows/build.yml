@@ -19,11 +19,17 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Setup Python for icon generation
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
       - name: Generate application icon
         shell: pwsh
         run: |
-          $iconBase64 = (Get-Content "assets/Nexcraft.ico.base64" -Raw).Trim()
-          [System.IO.File]::WriteAllBytes("src/NexcraftLauncher/Nexcraft.ico", [Convert]::FromBase64String($iconBase64))
+          python -m pip install --disable-pip-version-check pillow
+          python tools/generate_icon.py
+          Copy-Item "artifacts/icon/Nexcraft.ico" "src/NexcraftLauncher/Nexcraft.ico" -Force
 
       - name: Restore
         run: dotnet restore src/NexcraftLauncher/NexcraftLauncher.csproj
