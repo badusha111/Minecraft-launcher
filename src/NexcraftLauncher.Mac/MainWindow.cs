@@ -46,10 +46,10 @@ public sealed class MainWindow : Window
     private void InitializeWindowShell()
     {
         Title = "NEXCRAFT Launcher";
-        Width = 1180;
-        Height = 720;
-        MinWidth = 980;
-        MinHeight = 620;
+        Width = 1280;
+        Height = 780;
+        MinWidth = 1040;
+        MinHeight = 680;
         Background = Brush("#101319");
         Foreground = Brushes.White;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -62,7 +62,7 @@ public sealed class MainWindow : Window
             BorderBrush = Brush("#303744"),
             BorderThickness = new Thickness(1)
         };
-        var root = new Grid { ColumnDefinitions = new ColumnDefinitions("188,*") };
+        var root = new Grid { ColumnDefinitions = new ColumnDefinitions("200,*") };
         root.Children.Add(BuildSidebar());
         var right = new Grid { RowDefinitions = new RowDefinitions("62,*") };
         var header = new Grid { Margin = new Thickness(26, 0, 26, 0), ColumnDefinitions = new ColumnDefinitions("*,Auto") };
@@ -98,7 +98,7 @@ public sealed class MainWindow : Window
 
     private Control BuildSidebar()
     {
-        var layout = new Grid { RowDefinitions = new RowDefinitions("90,*,72") };
+        var layout = new Grid { RowDefinitions = new RowDefinitions("84,*,72") };
         var brand = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -119,8 +119,8 @@ public sealed class MainWindow : Window
             Spacing = 2,
             Children =
             {
-                new TextBlock { Text = "NEXCRAFT", FontSize = 17, FontWeight = FontWeight.Bold },
-                new TextBlock { Text = "MINECRAFT LAUNCHER", FontSize = 8, Foreground = Brush("#AEB8C8") }
+                new TextBlock { Text = "NEXCRAFT", FontSize = 18, FontWeight = FontWeight.Bold },
+                new TextBlock { Text = "MINECRAFT LAUNCHER", FontSize = 9, Foreground = Brush("#AEB8C8") }
             }
         });
         layout.Children.Add(brand);
@@ -138,7 +138,7 @@ public sealed class MainWindow : Window
         footer.Children.Add(new TextBlock { Text = "РАННЯЯ ВЕРСИЯ", FontSize = 9, Foreground = Brush("#FF9D45") });
         Grid.SetRow(footer, 2);
         layout.Children.Add(footer);
-        return new Border { Background = Brush("#151922"), Child = layout };
+        return new Border { Background = Brush("#0C1222"), Child = layout };
     }
 
     private Button NavButton(string title, Action action, bool navigation = false)
@@ -200,7 +200,7 @@ public sealed class MainWindow : Window
         };
         var hero = new Border
         {
-            Height = 320,
+            Height = 270,
             CornerRadius = new CornerRadius(16),
             ClipToBounds = true,
             BorderBrush = Brush("#5B4B36"),
