@@ -42,6 +42,7 @@ public sealed class MainWindow : Window
         LoadSettings();
         _nickname.TextChanged += (_, _) => SaveSettings();
         _versions.SelectionChanged += (_, _) => SaveSettings();
+        _loaders.SelectionChanged += (_, _) => SaveSettings();
         ShowHome();
         Opened += async (_, _) => await LoadVersionsAsync();
     }
@@ -554,6 +555,10 @@ public sealed class MainWindow : Window
                 _nickname.Text = nickname.GetString() ?? string.Empty;
             if (document.RootElement.TryGetProperty("selectedVersion", out var selectedVersion))
                 _savedVersion = selectedVersion.GetString();
+            if (document.RootElement.TryGetProperty("selectedLoader", out var selectedLoader) && !string.IsNullOrWhiteSpace(selectedLoader.GetString()))
+                _loaders.SelectedItem = _loaders.ItemsSource is IEnumerable<string> options
+                    ? options.FirstOrDefault(option => option == selectedLoader.GetString()) ?? options.First()
+                    : "Vanilla — обычная игра";
             if (document.RootElement.TryGetProperty("gameDirectory", out var gameDirectory) && !string.IsNullOrWhiteSpace(gameDirectory.GetString()))
                 _gameDirectory = gameDirectory.GetString()!;
             if (document.RootElement.TryGetProperty("minimumRamMb", out var minimumRam) && minimumRam.TryGetInt32(out var min))
@@ -579,6 +584,7 @@ public sealed class MainWindow : Window
             {
                 nickname = _nickname.Text?.Trim() ?? string.Empty,
                 selectedVersion = _versions.SelectedItem?.ToString() ?? _savedVersion,
+                selectedLoader = _loaders.SelectedItem?.ToString() ?? "Vanilla — обычная игра",
                 gameDirectory = _gameDirectory,
                 minimumRamMb = _minimumRamMb,
                 maximumRamMb = _maximumRamMb,
