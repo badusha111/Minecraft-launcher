@@ -272,7 +272,7 @@ public sealed class MainWindow : Window
         profile.Children.Add(versionLabel);
         _versions.Height = 42;
         _versions.Background = Brush("#171522");
-        _versions.Foreground = Brush("#F0D9A0");
+        _versions.Foreground = Brush("#C084FC");
         _versions.BorderBrush = Brush("#B89552");
         _versions.Padding = new Thickness(10, 7);
         _versions.FontSize = 13;
@@ -289,7 +289,7 @@ public sealed class MainWindow : Window
         profile.Children.Add(new TextBlock { Text = "ЗАГРУЗЧИК", FontSize = 11, FontWeight = FontWeight.Bold, Foreground = Brush("#E2C27A"), Margin = new Thickness(0, 12, 0, 4) });
         _loaders.Height = 44;
         _loaders.Background = Brush("#171522");
-        _loaders.Foreground = Brush("#F0D9A0");
+        _loaders.Foreground = Brush("#C084FC");
         _loaders.BorderBrush = Brush("#B89552");
         _loaders.Padding = new Thickness(10, 7);
         _loaders.FontSize = 13;
