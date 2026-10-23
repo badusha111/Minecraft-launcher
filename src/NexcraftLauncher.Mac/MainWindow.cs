@@ -348,8 +348,8 @@ public sealed class MainWindow : Window
         _play.FontSize = 25;
         _play.FontWeight = FontWeight.Black;
         _play.HorizontalContentAlignment = HorizontalAlignment.Center;
-        _play.Click -= PlayNotReady;
-        _play.Click += PlayNotReady;
+        _play.Click -= PlayMinecraft;
+        _play.Click += PlayMinecraft;
         right.Children.Add(_play);
         right.Children.Add(new TextBlock { Text = "ПЕРВАЯ УСТАНОВКА СКАЧАЕТ ФАЙЛЫ ИГРЫ", TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap, Foreground = Brush("#C0C8D5"), FontSize = 10, Margin = new Thickness(0, 0, 0, 8) });
         Grid.SetColumn(right, 1);
@@ -391,7 +391,7 @@ public sealed class MainWindow : Window
         }
     }
 
-    private async void PlayNotReady(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void PlayMinecraft(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (_isInstalling || _isSigningIn) return;
         if (_account is null)
