@@ -89,7 +89,7 @@
                     <TextBlock Text="Готов к входу" Foreground="#E0E5ED" FontSize="12"/>
                 </StackPanel>
             </DockPanel>
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer x:Name="HomeScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="26,8,26,24">
                     <Border Height="270" CornerRadius="16" ClipToBounds="True" BorderBrush="#5B4B36" BorderThickness="1">
                         <Grid>
@@ -204,6 +204,9 @@
                         </StackPanel>
                     </Grid>
                 </StackPanel>
+            </ScrollViewer>
+            <ScrollViewer x:Name="SectionScrollViewer" Grid.Row="1" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="SectionContent" Margin="26,8,26,24"/>
             </ScrollViewer>
         </Grid>
     </Grid>
