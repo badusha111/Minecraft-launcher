@@ -482,8 +482,12 @@ public sealed class MainWindow : Window
 
             installedJava = Directory.EnumerateFiles(runtimeRoot, javaName, SearchOption.AllDirectories)
                 .FirstOrDefault(file => Path.GetFileName(Path.GetDirectoryName(file) ?? "").Equals("bin", StringComparison.OrdinalIgnoreCase));
-            if (string.IsNullOrWhiteSpace(installedJava) || !await IsJavaMajorAsync(installedJava, requiredMajor))
-                throw new InvalidOperationException($"Java {requiredMajor} скачана, но не прошла проверку запуска.");
+            if (string.IsNullOrWhiteSpace(installedJava))
+                throw new InvalidOperationException($"Java {requiredMajor} скачана и распакована, но исполняемый файл {javaName} не найден в папке bin. Папка: {runtimeRoot}");
+
+            var validation = await CheckJavaMajorAsync(installedJava, requiredMajor);
+            if (!validation.Success)
+                throw new InvalidOperationException($"Java {requiredMajor} скачана, но не прошла проверку запуска. Путь: {installedJava}. Подробности: {validation.Details}");
 
             return installedJava;
         }
@@ -499,26 +503,44 @@ public sealed class MainWindow : Window
 
     private static async Task<bool> IsJavaMajorAsync(string javaPath, int expectedMajor)
     {
+        var result = await CheckJavaMajorAsync(javaPath, expectedMajor);
+        return result.Success;
+    }
+
+    private static async Task<(bool Success, string Details)> CheckJavaMajorAsync(string javaPath, int expectedMajor)
+    {
         try
         {
-            var start = new ProcessStartInfo(javaPath, "-version")
+            var start = new ProcessStartInfo
             {
+                FileName = javaPath,
+                Arguments = "-version",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true
             };
             using var process = Process.Start(start);
-            if (process is null) return false;
-            var stdout = process.StandardOutput.ReadToEndAsync();
-            var stderr = process.StandardError.ReadToEndAsync();
+            if (process is null) return (false, "Операционная система не запустила процесс Java.");
+            var stdoutTask = process.StandardOutput.ReadToEndAsync();
+            var stderrTask = process.StandardError.ReadToEndAsync();
             await process.WaitForExitAsync();
-            var output = await stdout + await stderr;
-            var match = System.Text.RegularExpressions.Regex.Match(output, @"version\s+""(?:1\.)?(\d+)""");
-            return process.ExitCode == 0 && match.Success &&
-                int.TryParse(match.Groups[1].Value, out var actualMajor) && actualMajor == expectedMajor;
+            var output = (await stdoutTask) + Environment.NewLine + (await stderrTask);
+            var match = System.Text.RegularExpressions.Regex.Match(output, @"(?:openjdk|java) version\s+""(?:1\.)?(\d+)(?:[.+-][^""]*)?""", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (process.ExitCode != 0)
+                return (false, $"java -version завершилась с кодом {process.ExitCode}. Вывод: {output.Trim()}");
+            if (!match.Success)
+                return (false, $"Не удалось распознать версию в выводе java -version: {output.Trim()}");
+            if (!int.TryParse(match.Groups[1].Value, out var actualMajor))
+                return (false, $"Не удалось определить номер версии Java. Вывод: {output.Trim()}");
+            if (actualMajor != expectedMajor)
+                return (false, $"Ожидалась Java {expectedMajor}, но запустилась Java {actualMajor}. Вывод: {output.Trim()}");
+            return (true, output.Trim());
         }
-        catch { return false; }
+        catch (Exception ex)
+        {
+            return (false, $"{ex.GetType().Name}: {ex.Message}");
+        }
     }
 
     private static string FindJavaExecutable(string gameVersion, string gameDir)
