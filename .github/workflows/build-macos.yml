@@ -15,7 +15,7 @@ on:
 
 jobs:
   publish:
-    name: Publish macOS (${{ matrix.rid }})
+    name: Package macOS (${{ matrix.rid }})
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -29,10 +29,34 @@ jobs:
       - name: Restore
         run: dotnet restore src/NexcraftLauncher.Mac/NexcraftLauncher.Mac.csproj
       - name: Publish
-        run: dotnet publish src/NexcraftLauncher.Mac/NexcraftLauncher.Mac.csproj --configuration Release --runtime ${{ matrix.rid }} --self-contained true -o artifacts/NEXCRAFT-${{ matrix.rid }}
-      - name: Upload artifact
+        run: dotnet publish src/NexcraftLauncher.Mac/NexcraftLauncher.Mac.csproj --configuration Release --runtime ${{ matrix.rid }} --self-contained true -o artifacts/publish
+      - name: Create macOS app bundle
+        shell: bash
+        run: |
+          APP="artifacts/NEXCRAFT-${{ matrix.rid }}.app"
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+          cp -R artifacts/publish/. "$APP/Contents/MacOS/"
+          cat > "$APP/Contents/Info.plist" <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleName</key><string>NEXCRAFT</string>
+            <key>CFBundleDisplayName</key><string>NEXCRAFT</string>
+            <key>CFBundleIdentifier</key><string>com.nexcraft.launcher</string>
+            <key>CFBundleExecutable</key><string>NEXCRAFT</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+            <key>CFBundleShortVersionString</key><string>0.1.0</string>
+            <key>CFBundleVersion</key><string>1</string>
+            <key>LSMinimumSystemVersion</key><string>12.0</string>
+            <key>NSHighResolutionCapable</key><true/>
+          </dict>
+          </plist>
+          PLIST
+          chmod +x "$APP/Contents/MacOS/NEXCRAFT"
+      - name: Upload app bundle
         uses: actions/upload-artifact@v4
         with:
-          name: NEXCRAFT-${{ matrix.rid }}
-          path: artifacts/NEXCRAFT-${{ matrix.rid }}/
+          name: NEXCRAFT-${{ matrix.rid }}.app
+          path: artifacts/NEXCRAFT-${{ matrix.rid }}.app/
           if-no-files-found: error
