@@ -339,6 +339,104 @@ public partial class MainWindow : Window
     }
 
 
+    private static int RequiredJavaMajor(string gameVersion)
+    {
+        var parts = gameVersion.Split('.');
+        if (parts.Length >= 2 && parts[0] == "1" && int.TryParse(parts[1], out var minor))
+        {
+            if (minor >= 21) return 21;
+            if (minor == 20)
+            {
+                var patch = parts.Length >= 3 && int.TryParse(parts[2].Split('-')[0], out var p) ? p : 0;
+                return patch >= 5 ? 21 : 17;
+            }
+            if (minor >= 18) return 17;
+            if (minor == 17) return 16;
+        }
+        return 8;
+    }
+
+    private static string FindJavaExecutable(string gameVersion, string gameDir)
+    {
+        int requiredMajor = RequiredJavaMajor(gameVersion);
+        var candidates = new System.Collections.Generic.List<string>();
+        void AddIfExists(string? candidate)
+        {
+            if (!string.IsNullOrWhiteSpace(candidate) && File.Exists(candidate) &&
+                !candidates.Contains(candidate, StringComparer.OrdinalIgnoreCase))
+                candidates.Add(candidate);
+        }
+
+        string javaName = OperatingSystem.IsWindows() ? "java.exe" : "java";
+        var runtimeRoots = new[]
+        {
+            Path.Combine(gameDir, "runtime"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft", "runtime"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Eclipse Adoptium"),
+            @"C:\Program Files\Eclipse Adoptium",
+            @"C:\Program Files\Java",
+            @"C:\Program Files\Microsoft",
+            @"C:\Program Files\Amazon Corretto",
+            @"C:\Program Files\Zulu",
+            @"C:\Program Files\BellSoft"
+        };
+
+        foreach (var root in runtimeRoots)
+        {
+            if (!Directory.Exists(root)) continue;
+            try
+            {
+                foreach (var file in Directory.EnumerateFiles(root, javaName, SearchOption.AllDirectories).Take(150))
+                    if (Path.GetFileName(Path.GetDirectoryName(file) ?? "").Equals("bin", StringComparison.OrdinalIgnoreCase))
+                        AddIfExists(file);
+            }
+            catch (UnauthorizedAccessException) { }
+            catch (IOException) { }
+        }
+
+        var javaHome = Environment.GetEnvironmentVariable("JAVA_HOME");
+        if (!string.IsNullOrWhiteSpace(javaHome))
+            AddIfExists(Path.Combine(javaHome, "bin", javaName));
+
+        var pathValue = Environment.GetEnvironmentVariable("PATH") ?? "";
+        foreach (var folder in pathValue.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+            AddIfExists(Path.Combine(folder.Trim('"'), javaName));
+
+        foreach (var candidate in candidates)
+        {
+            try
+            {
+                var start = new ProcessStartInfo(candidate, "-version")
+                {
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+                using var process = Process.Start(start);
+                if (process is null) continue;
+                var outputTask = process.StandardOutput.ReadToEndAsync();
+                var errorTask = process.StandardError.ReadToEndAsync();
+                process.WaitForExit();
+                var output = outputTask.GetAwaiter().GetResult() + errorTask.GetAwaiter().GetResult();
+                var match = System.Text.RegularExpressions.Regex.Match(output, @"version\s+\"(?:1\.)?(\d+)");
+                if (match.Success && int.TryParse(match.Groups[1].Value, out var major) && major == requiredMajor)
+                    return candidate;
+            }
+            catch { }
+        }
+
+        string requirement = requiredMajor switch
+        {
+            21 => "Java 21",
+            17 => "Java 17",
+            16 => "Java 16",
+            _ => "Java 8"
+        };
+        throw new InvalidOperationException(
+            $"Для Minecraft {gameVersion} нужен {requirement}, но подходящая Java не найдена. Сейчас у тебя обнаружена Java 8 (1.8.0_401). Установи {requirement} и повтори запуск. Лаунчер больше не будет запускать установщик Forge заведомо неподходящей Java.");
+    }
+
     private async Task<string> PrepareLoaderVersionAsync(string loaderLabel, string gameVersion, string gameDir, MinecraftPath path)
     {
         if (loaderLabel.StartsWith("Vanilla", StringComparison.OrdinalIgnoreCase))
@@ -377,7 +475,7 @@ public partial class MainWindow : Window
             var installerUrl = $"https://maven.minecraftforge.net/net/minecraftforge/forge/{fullVersion}/forge-{fullVersion}-installer.jar";
             var installerPath = Path.Combine(Path.GetTempPath(), $"forge-{fullVersion}-installer.jar");
             await File.WriteAllBytesAsync(installerPath, await http.GetByteArrayAsync(installerUrl));
-            var start = new ProcessStartInfo("java") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            var start = new ProcessStartInfo(FindJavaExecutable(gameVersion, gameDir)) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
             start.ArgumentList.Add("-jar");
             start.ArgumentList.Add(installerPath);
             start.ArgumentList.Add("--installClient");
@@ -403,11 +501,13 @@ public partial class MainWindow : Window
         {
             var dialog = new OpenFileDialog { Title = "Выбери установщик OptiFine для выбранной версии Minecraft", Filter = "Java installer (*.jar)|*.jar", CheckFileExists = true };
             if (dialog.ShowDialog(this) != true) throw new OperationCanceledException("Установка OptiFine отменена.");
-            var start = new ProcessStartInfo("java") { UseShellExecute = false, CreateNoWindow = true };
+            var start = new ProcessStartInfo(FindJavaExecutable(gameVersion, gameDir)) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
             start.ArgumentList.Add("-jar"); start.ArgumentList.Add(dialog.FileName); start.ArgumentList.Add("-install");
             using var installer = Process.Start(start) ?? throw new InvalidOperationException("Не удалось запустить Java для OptiFine. Установи подходящую Java.");
+            var stdoutTask = installer.StandardOutput.ReadToEndAsync();
+            var stderrTask = installer.StandardError.ReadToEndAsync();
             await installer.WaitForExitAsync();
-            if (installer.ExitCode != 0) throw new InvalidOperationException($"Установщик OptiFine завершился с кодом {installer.ExitCode}.");
+            if (installer.ExitCode != 0) throw new InvalidOperationException($"Установщик OptiFine завершился с кодом {installer.ExitCode}: {(await stdoutTask)}{Environment.NewLine}{(await stderrTask)}");
             var versionsDir = Path.Combine(gameDir, "versions");
             var installed = Directory.Exists(versionsDir) ? Directory.GetDirectories(versionsDir, gameVersion + "-OptiFine*").OrderByDescending(Directory.GetLastWriteTimeUtc).FirstOrDefault() : null;
             if (installed is null) throw new DirectoryNotFoundException("Профиль OptiFine не найден. Проверь, что установщик подходит к выбранной версии.");
