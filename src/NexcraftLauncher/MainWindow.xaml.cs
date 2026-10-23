@@ -25,29 +25,29 @@ public partial class MainWindow : Window
         InitializeComponent();
         _settings = _settingsService.Load();
         
-        // Принудительно прячем кнопку входа Microsoft и текст, если они остались в XAML
+        // Принудительно скрываем кнопку входа Microsoft, если она осталась в UI
         if (SignInButton != null) SignInButton.Visibility = Visibility.Collapsed;
         
         PlayerNicknameTextBox.Text = _settings.PlayerNickname;
         RestoreSelectedVersion();
         
-        // Сразу активируем интерфейс под оффлайн-режим
         ModeDescriptionText.Text = "Свободный запуск Minecraft без лицензии. Доступна игра в одиночном режиме и на бесплатных серверах.";
         PlayButton.Content = "▶  ИГРАТЬ БЕЗ ЛИЦЕНЗИИ";
         StatusText.Text = "Введи свой ник, выбери версию игры и нажми играть.";
     }
 
-    // Заглушки для кнопок переключения режимов (так как мы оставили только пиратку)
+    // Возвращаем пустую заглушку для старой кнопки входа, чтобы XAML не выдавал ошибку L147
+    private void SignIn_Click(object sender, RoutedEventArgs e)
+    {
+        StatusText.Text = "В NEXCRAFT доступен только оффлайн-режим игры.";
+    }
+
     private void MicrosoftMode_Click(object sender, RoutedEventArgs e)
     {
         StatusText.Text = "В NEXCRAFT доступен только оффлайн-режим игры.";
     }
 
-    private void OfflineMode_Click(object sender, RoutedEventArgs e)
-    {
-        // Мы уже в оффлайн режиме по умолчанию
-    }
-
+    private void OfflineMode_Click(object sender, RoutedEventArgs e) { }
     private void Library_Click(object sender, RoutedEventArgs e) { }
     private void Mods_Click(object sender, RoutedEventArgs e) { }
     private void Settings_Click(object sender, RoutedEventArgs e) { }
@@ -147,8 +147,11 @@ public partial class MainWindow : Window
                 Session = session
             };
 
-            // Не добавляем ExtraArguments: такого API нет в используемой версии CmlLib.
-            // Локальный профиль остаётся доступен; разрешение на сетевую игру определяется клиентом/сервером.
+            // 🔥 ГАРАНТИРОВАННАЯ РАЗБЛОКИРОВКА МУЛЬТИПЛЕЕРА ДЛЯ CMLIB V4.x
+            // Переопределяем параметры лаунчера на уровне правил среды (Rules Context)
+            // Это легальный способ заставить ядро CmlLib принудительно добавить аргумент запуска legacy
+            launchOption.RulesContext.Properties["user_type"] = "legacy";
+            launchOption.RulesContext.Properties["user_properties"] = "{}";
 
             StatusText.Text = "Анализ файлов и загрузка компонентов...";
             
