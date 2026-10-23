@@ -10,6 +10,8 @@ public partial class MainWindow : Window
     private readonly LauncherSettingsService _settingsService = new();
     private readonly MinecraftMetadataService _metadataService = new();
     private readonly JavaRuntimeService _javaRuntimeService = new();
+    private readonly MinecraftInstallationService _installationService = new();
+    private bool _isInstalling;
     private LauncherSettings _settings;
 
     public MainWindow()
@@ -53,6 +55,7 @@ public partial class MainWindow : Window
 
     private async void Play_Click(object sender, RoutedEventArgs e)
     {
+        if (_isInstalling) return;
         SaveSelectedVersion();
         var version = (VersionSelector.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Split('—', StringSplitOptions.TrimEntries)[0];
         if (string.IsNullOrWhiteSpace(version))
@@ -61,44 +64,49 @@ public partial class MainWindow : Window
             return;
         }
 
-        StatusText.Text = "Проверяю официальные метаданные Minecraft…";
+        _isInstalling = true;
+        PlayButton.IsEnabled = false;
+        DownloadProgress.Visibility = Visibility.Visible;
+        DownloadProgress.Value = 0;
         try
         {
-            var metadata = await _metadataService.GetVersionMetadataAsync(version);
-            StatusText.Text = $"Версия {metadata.Id} найдена. Проверяю Java…";
-            var java = await _javaRuntimeService.DetectAsync();
-            var requiredJava = metadata.JavaVersion?.MajorVersion;
-            if (java is null)
-            {
-                StatusText.Text = requiredJava is int required
-                    ? $"Метаданные {metadata.Id} проверены. Java {required} не найдена. Установка и запуск игры ещё не подключены."
-                    : $"Метаданные {metadata.Id} проверены, но Java не найдена. Установка и запуск игры ещё не подключены.";
-                return;
-            }
-
-            if (requiredJava is int requiredVersion && java.MajorVersion < requiredVersion)
-            {
-                StatusText.Text = $"Найдена Java {java.MajorVersion}, а Minecraft {metadata.Id} требует Java {requiredVersion}. Запуск пока недоступен.";
-                return;
-            }
-
-            StatusText.Text = $"Проверка пройдена: Minecraft {metadata.Id}, Java {java.MajorVersion}. Загрузка игровых файлов и запуск — следующий этап.";
+            StatusText.Text = "Подготавливаю установку…";
+            var status = new Progress<string>(message => StatusText.Text = message);
+            var progress = new Progress<double>(value => DownloadProgress.Value = Math.Clamp(value * 100, 0, 100));
+            await _installationService.InstallAsync(version, _settings.GameDirectory, status, progress);
+            StatusText.Text = $"Minecraft {version}: клиент, библиотеки и ресурсы загружены. Для онлайн-игры ещё нужна авторизация Microsoft и настройка запуска.";
+            MessageBox.Show(
+                $"Файлы Minecraft {version} загружены и проверены.\n\nПапка игры: {_settings.GameDirectory}\n\nСледующий этап — авторизация Microsoft и полноценный запуск.",
+                "NEXCRAFT — Установка завершена", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (OperationCanceledException)
         {
-            StatusText.Text = "Проверка отменена.";
+            StatusText.Text = "Установка отменена.";
         }
         catch (HttpRequestException ex)
         {
-            StatusText.Text = $"Не удалось получить данные Mojang: {ex.Message}";
+            StatusText.Text = $"Ошибка сети при загрузке: {ex.Message}";
         }
         catch (InvalidDataException ex)
         {
-            StatusText.Text = $"Не удалось проверить версию: {ex.Message}";
+            StatusText.Text = $"Проверка файлов не пройдена: {ex.Message}";
         }
-        catch (TaskCanceledException)
+        catch (IOException ex)
         {
-            StatusText.Text = "Сервер метаданных не ответил вовремя. Попробуй ещё раз.";
+            StatusText.Text = $"Не удалось записать файлы игры: {ex.Message}";
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            StatusText.Text = $"Нет доступа к папке игры: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Ошибка установки: {ex.Message}";
+        }
+        finally
+        {
+            _isInstalling = false;
+            PlayButton.IsEnabled = true;
         }
     }
 
