@@ -481,7 +481,7 @@ public sealed class MainWindow : Window
                 var stderr = process.StandardError.ReadToEndAsync();
                 process.WaitForExit();
                 var output = stdout.GetAwaiter().GetResult() + stderr.GetAwaiter().GetResult();
-                var match = System.Text.RegularExpressions.Regex.Match(output, @"version\\s+""(?:1\\.)?(\\d+)""");
+                var match = System.Text.RegularExpressions.Regex.Match(output, @"version\s+""(?:1\.)?(\d+)""");
                 if (match.Success && int.TryParse(match.Groups[1].Value, out var major) && major == requiredMajor)
                     return candidate;
             }
