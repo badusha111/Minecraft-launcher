@@ -51,8 +51,9 @@ public sealed class MinecraftLaunchService
                 }
 
                 if (downloads.TryGetProperty("classifiers", out var classifiers) &&
-                    GetString(lib, "natives") is string natives &&
-                    classifiers.TryGetProperty(ResolveNativeClassifier(natives), out var nativeArtifact) &&
+                    lib.TryGetProperty("natives", out var nativesMap) &&
+                    GetString(nativesMap, "windows") is string nativeTemplate &&
+                    classifiers.TryGetProperty(ResolveNativeClassifier(nativeTemplate), out var nativeArtifact) &&
                     GetString(nativeArtifact, "path") is string relativeNative)
                 {
                     var nativePath = SafeCombine(Path.Combine(root, "libraries"), relativeNative);
