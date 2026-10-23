@@ -11,6 +11,6 @@
         <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource PanelColor}"/>
         <SolidColorBrush x:Key="GreenBrush" Color="{StaticResource GreenColor}"/>
         <SolidColorBrush x:Key="OrangeBrush" Color="{StaticResource OrangeColor}"/>
-        <SolidColorBrush x:Key="MutedBrush" Color="#9299A7"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#B8C1D0"/>
     </Application.Resources>
 </Application>
