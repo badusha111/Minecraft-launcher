@@ -54,6 +54,28 @@ jobs:
           </plist>
           PLIST
           chmod +x "$APP/Contents/MacOS/NEXCRAFT"
+      - name: Verify app bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP="artifacts/NEXCRAFT-${{ matrix.rid }}.app"
+          PLIST="$APP/Contents/Info.plist"
+          EXECUTABLE="$APP/Contents/MacOS/NEXCRAFT"
+
+          test -d "$APP"
+          test -f "$PLIST"
+          test -x "$EXECUTABLE"
+          plutil -lint "$PLIST"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$PLIST" | grep -Fx 'com.nexcraft.launcher'
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$PLIST" | grep -Fx 'NEXCRAFT'
+
+          ARCHS="$(lipo -archs "$EXECUTABLE")"
+          case "${{ matrix.rid }}" in
+            osx-arm64) echo "$ARCHS" | grep -qw arm64 ;;
+            osx-x64) echo "$ARCHS" | grep -qw x86_64 ;;
+          esac
+          echo "Verified $APP; executable architectures: $ARCHS"
+
       - name: Upload app bundle
         uses: actions/upload-artifact@v4
         with:
