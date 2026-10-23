@@ -208,6 +208,22 @@ public sealed class MainWindow : Window
             BorderThickness = new Thickness(1),
             Child = heroGrid
         };
+        var landscape = new Canvas { IsHitTestVisible = true, Opacity = 0.95 };
+        landscape.Children.Add(new Rectangle { Width = 54, Height = 12, Fill = Brush("#C8C8FF"), Opacity = 0.25, [Canvas.LeftProperty] = 350, [Canvas.TopProperty] = 26 });
+        landscape.Children.Add(new Rectangle { Width = 76, Height = 12, Fill = Brush("#C8C8FF"), Opacity = 0.25, [Canvas.LeftProperty] = 376, [Canvas.TopProperty] = 14 });
+        landscape.Children.Add(new Ellipse { Width = 58, Height = 58, Fill = Brush("#FFCB77"), Opacity = 0.85, [Canvas.LeftProperty] = 590, [Canvas.TopProperty] = 26 });
+        landscape.Children.Add(new Polygon { Points = new Avalonia.Collections.AvaloniaList<Avalonia.Point> { new(300,178), new(420,70), new(525,178) }, Fill = Brush("#4A527B") });
+        landscape.Children.Add(new Polygon { Points = new Avalonia.Collections.AvaloniaList<Avalonia.Point> { new(400,185), new(520,90), new(635,185) }, Fill = Brush("#35436A") });
+        landscape.Children.Add(new Polygon { Points = new Avalonia.Collections.AvaloniaList<Avalonia.Point> { new(450,218), new(585,128), new(735,218), new(735,258), new(450,258) }, Fill = Brush("#315C50") });
+        landscape.Children.Add(new Polygon { Points = new Avalonia.Collections.AvaloniaList<Avalonia.Point> { new(450,218), new(585,128), new(735,218) }, Fill = Brush("#46755C") });
+        landscape.Children.Add(new Rectangle { Width = 240, Height = 8, Fill = Brush("#5B8D62"), [Canvas.LeftProperty] = 465, [Canvas.TopProperty] = 223 });
+        landscape.Children.Add(new Rectangle { Width = 14, Height = 30, Fill = Brush("#6B4938"), [Canvas.LeftProperty] = 520, [Canvas.TopProperty] = 205 });
+        landscape.Children.Add(new Rectangle { Width = 42, Height = 22, Fill = Brush("#3E8A51"), [Canvas.LeftProperty] = 506, [Canvas.TopProperty] = 188 });
+        landscape.Children.Add(new Rectangle { Width = 26, Height = 15, Fill = Brush("#4B9B59"), [Canvas.LeftProperty] = 514, [Canvas.TopProperty] = 176 });
+        landscape.Children.Add(new Rectangle { Width = 12, Height = 24, Fill = Brush("#6B4938"), [Canvas.LeftProperty] = 585, [Canvas.TopProperty] = 213 });
+        landscape.Children.Add(new Rectangle { Width = 40, Height = 21, Fill = Brush("#347849"), [Canvas.LeftProperty] = 571, [Canvas.TopProperty] = 198 });
+        landscape.Children.Add(new Rectangle { Width = 24, Height = 15, Fill = Brush("#4A9654"), [Canvas.LeftProperty] = 579, [Canvas.TopProperty] = 186 });
+        heroGrid.Children.Add(landscape);
         heroGrid.Children.Add(new Border { Width = 8, Background = Brush("#8B5CF6"), HorizontalAlignment = HorizontalAlignment.Left });
         var heroText = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(34, 0, 0, 0), Spacing = 4 };
         heroText.Children.Add(new Border
