@@ -9,4 +9,8 @@
     <AssemblyName>NEXCRAFT</AssemblyName>
     <ApplicationIcon>Nexcraft.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CmlLib.Core" Version="4.0.2" />
+  </ItemGroup>
 </Project>
