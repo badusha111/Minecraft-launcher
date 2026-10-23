@@ -15,6 +15,7 @@ public partial class MainWindow : Window
     private readonly MinecraftLaunchService _launchService = new();
     private AuthenticatedMinecraftAccount? _account;
     private bool _isInstalling;
+    private bool _offlineMode;
     private LauncherSettings _settings;
 
     public MainWindow()
@@ -23,6 +24,32 @@ public partial class MainWindow : Window
         _settings = _settingsService.Load();
         PlayerNicknameTextBox.Text = _settings.PlayerNickname;
         RestoreSelectedVersion();
+    }
+
+    private void MicrosoftMode_Click(object sender, RoutedEventArgs e)
+    {
+        _offlineMode = false;
+        MicrosoftModeButton.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#20352F"));
+        MicrosoftModeButton.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#19F58A"));
+        OfflineModeButton.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#272D3A"));
+        OfflineModeButton.Foreground = System.Windows.Media.Brushes.White;
+        ModeDescriptionText.Text = "Официальный вход Microsoft, проверка доступа и запуск Minecraft Java Edition.";
+        SignInButton.Visibility = Visibility.Visible;
+        PlayButton.Content = "▶  ИГРАТЬ";
+        StatusText.Text = _account is null ? "Войди через Microsoft, чтобы установить и запустить Minecraft." : $"Вход выполнен: {_account.Username}.";
+    }
+
+    private void OfflineMode_Click(object sender, RoutedEventArgs e)
+    {
+        _offlineMode = true;
+        OfflineModeButton.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#30264B"));
+        OfflineModeButton.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#C8B6FF"));
+        MicrosoftModeButton.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#272D3A"));
+        MicrosoftModeButton.Foreground = System.Windows.Media.Brushes.White;
+        ModeDescriptionText.Text = "Локальный ник без Microsoft. Этот профиль не авторизует оригинальную Minecraft; офлайн-запуск будет доступен для совместимой бесплатной игры.";
+        SignInButton.Visibility = Visibility.Collapsed;
+        PlayButton.Content = "✓  СОХРАНИТЬ ПРОФИЛЬ";
+        StatusText.Text = "Введи локальный ник и сохрани офлайн-профиль.";
     }
 
     private void RestoreSelectedVersion()
@@ -111,6 +138,11 @@ public partial class MainWindow : Window
         }
 
         SaveSelectedVersion();
+        if (_offlineMode)
+        {
+            StatusText.Text = $"Офлайн-профиль «{nickname}» сохранён. Вход в Microsoft не требуется. Оригинальная Minecraft в этом режиме не запускается; следующий шаг — подключение бесплатной игры, поддерживающей локальные профили.";
+            return;
+        }
         var version = (VersionSelector.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Split('—', StringSplitOptions.TrimEntries)[0];
         if (string.IsNullOrWhiteSpace(version))
         {
