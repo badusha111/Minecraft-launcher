@@ -30,41 +30,60 @@ public sealed class MainWindow : Window
 
     public MainWindow()
     {
-        Title = "NEXCRAFT";
-        Width = 1080;
-        Height = 700;
-        MinWidth = 820;
-        MinHeight = 560;
-        Background = Brush("#101319");
-        Foreground = Brushes.White;
-        WindowStartupLocation = WindowStartupLocation.CenterScreen;
-
-        var root = new Grid { ColumnDefinitions = new ColumnDefinitions("220,*") };
-        root.Children.Add(BuildSidebar());
-        var right = new Border
-        {
-            Background = Brush("#151922"),
-            Padding = new Thickness(28),
-            Child = new StackPanel
-            {
-                Spacing = 18,
-                Children =
-                {
-                    new TextBlock { Text = "NEXCRAFT", FontSize = 12, FontWeight = FontWeight.Bold, Foreground = Brush("#B99AFF") },
-                    new TextBlock { Text = "Твоя игровая библиотека", FontSize = 27, FontWeight = FontWeight.Bold },
-                    _mainContent,
-                    new Border { Height = 1, Background = Brush("#343D4D"), Margin = new Thickness(0, 8) },
-                    _status
-                }
-            }
-        };
-        Grid.SetColumn(right, 1);
-        root.Children.Add(right);
-        Content = root;
+        InitializeWindowShell();
         LoadSettings();
         _nickname.TextChanged += (_, _) => SaveSettings();
         ShowHome();
         Opened += async (_, _) => await LoadVersionsAsync();
+    }
+
+    private void InitializeWindowShell()
+    {
+        Title = "NEXCRAFT Launcher";
+        Width = 1180;
+        Height = 720;
+        MinWidth = 980;
+        MinHeight = 620;
+        Background = Brush("#101319");
+        Foreground = Brushes.White;
+        WindowStartupLocation = WindowStartupLocation.CenterScreen;
+
+        var shell = new Border
+        {
+            Margin = new Thickness(16),
+            CornerRadius = new CornerRadius(18),
+            Background = Brush("#151922"),
+            BorderBrush = Brush("#303744"),
+            BorderThickness = new Thickness(1)
+        };
+        var root = new Grid { ColumnDefinitions = new ColumnDefinitions("188,*") };
+        root.Children.Add(BuildSidebar());
+        var right = new Grid { RowDefinitions = new RowDefinitions("62,*") };
+        var header = new Grid { Margin = new Thickness(26, 0, 26, 0), ColumnDefinitions = new ColumnDefinitions("*,Auto") };
+        header.Children.Add(new TextBlock { Text = "ЦЕНТР ИГРЫ", FontSize = 10, Foreground = Brush("#AEB8C8"), VerticalAlignment = VerticalAlignment.Center });
+        var ready = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
+        ready.Children.Add(new Ellipse { Width = 8, Height = 8, Fill = Brush("#19F58A"), VerticalAlignment = VerticalAlignment.Center });
+        ready.Children.Add(new TextBlock { Text = "Лаунчер готов", FontSize = 12, Foreground = Brush("#E0E5ED"), VerticalAlignment = VerticalAlignment.Center });
+        Grid.SetColumn(ready, 1);
+        header.Children.Add(ready);
+        right.Children.Add(header);
+
+        var page = new StackPanel { Spacing = 0 };
+        page.Children.Add(_mainContent);
+        page.Children.Add(new Border { Height = 1, Background = Brush("#343D4D"), Margin = new Thickness(0, 8) });
+        page.Children.Add(_status);
+        var scroll = new ScrollViewer
+        {
+            Content = page,
+            VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
+            Margin = new Thickness(26, 8, 26, 24)
+        };
+        Grid.SetRow(scroll, 1);
+        right.Children.Add(scroll);
+        Grid.SetColumn(right, 1);
+        root.Children.Add(right);
+        shell.Child = root;
+        Content = shell;
     }
 
     private Control BuildSidebar()
