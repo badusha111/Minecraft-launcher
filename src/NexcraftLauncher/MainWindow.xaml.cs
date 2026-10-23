@@ -241,7 +241,7 @@ public partial class MainWindow : Window
         content.Children.Add(new TextBlock { Text = "Папка игры", Margin = new Thickness(0, 0, 0, 6) });
         var folder = new TextBox { Text = GetGameDirectory(), Height = 38, Padding = new Thickness(9, 7, 9, 7) };
         content.Children.Add(folder);
-        var browse = new Button { Content = "Обзор…", Padding = new Thickness(14, 8), Margin = new Thickness(0, 8, 0, 16), HorizontalAlignment = HorizontalAlignment.Left };
+        var browse = new Button { Content = "Обзор…", Padding = new Thickness(14, 8, 14, 8), Margin = new Thickness(0, 8, 0, 16), HorizontalAlignment = HorizontalAlignment.Left };
         browse.Click += (_, _) =>
         {
             var dialog = new OpenFolderDialog { Title = "Выберите папку для файлов Minecraft", Multiselect = false, InitialDirectory = Directory.Exists(folder.Text) ? folder.Text : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) };
@@ -262,7 +262,7 @@ public partial class MainWindow : Window
         content.Children.Add(close);
         var error = new TextBlock { Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#FFB36B"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 10, 0, 0) };
         content.Children.Add(error);
-        var save = new Button { Content = "Сохранить настройки", Padding = new Thickness(18, 10), Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#19F58A"), Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#092318"), FontWeight = FontWeights.Bold, BorderThickness = new Thickness(0), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 18, 0, 0) };
+        var save = new Button { Content = "Сохранить настройки", Padding = new Thickness(18, 10, 18, 10), Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#19F58A"), Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#092318"), FontWeight = FontWeights.Bold, BorderThickness = new Thickness(0), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 18, 0, 0) };
         save.Click += (_, _) =>
         {
             int minValue = MemoryValue(min, 1024);
