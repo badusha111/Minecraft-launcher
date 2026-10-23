@@ -19,6 +19,12 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Generate application icon
+        shell: pwsh
+        run: |
+          $iconBase64 = (Get-Content "assets/Nexcraft.ico.base64" -Raw).Trim()
+          [System.IO.File]::WriteAllBytes("src/NexcraftLauncher/Nexcraft.ico", [Convert]::FromBase64String($iconBase64))
+
       - name: Restore
         run: dotnet restore src/NexcraftLauncher/NexcraftLauncher.csproj
 
@@ -27,6 +33,12 @@ jobs:
 
       - name: Publish Windows x64 app
         run: dotnet publish src/NexcraftLauncher/NexcraftLauncher.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o artifacts/NEXCRAFT
+
+      - name: Add installer files
+        shell: pwsh
+        run: |
+          Copy-Item "packaging/Install-NEXCRAFT.bat" "artifacts/NEXCRAFT/Install-NEXCRAFT.bat"
+          Copy-Item "packaging/Install-NEXCRAFT.ps1" "artifacts/NEXCRAFT/Install-NEXCRAFT.ps1"
 
       - name: Upload launcher artifact
         uses: actions/upload-artifact@v4
