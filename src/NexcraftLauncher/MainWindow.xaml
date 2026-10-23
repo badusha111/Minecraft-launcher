@@ -120,7 +120,7 @@
                                 <TextBlock Text="ВЫБЕРИ РЕЖИМ" FontSize="11" Foreground="#C0C8D5"/>
                                 <UniformGrid Columns="2" Margin="0,8,0,16">
                                     <Button x:Name="MicrosoftModeButton" Content="MICROSOFT" Height="42" Margin="0,0,6,0" Background="#20352F" Foreground="#19F58A" BorderBrush="#19F58A" BorderThickness="1" FontWeight="Bold" Click="MicrosoftMode_Click" Cursor="Hand"/>
-                                    <Button x:Name="OfflineModeButton" Content="ОФЛАЙН-ПРОФИЛЬ" Height="42" Margin="6,0,0,0" Background="#272D3A" Foreground="#F5F7FA" BorderBrush="#586477" BorderThickness="1" FontWeight="Bold" Click="OfflineMode_Click" Cursor="Hand"/>
+                                    <Button x:Name="OfflineModeButton" Content="ОФЛАЙН-ИГРА" Height="42" Margin="6,0,0,0" Background="#272D3A" Foreground="#F5F7FA" BorderBrush="#586477" BorderThickness="1" FontWeight="Bold" Click="OfflineMode_Click" Cursor="Hand"/>
                                 </UniformGrid>
                                 <TextBlock x:Name="ModeDescriptionText" Text="Официальный вход и проверка доступа к Minecraft." TextWrapping="Wrap" FontSize="11" Foreground="#C0C8D5" Margin="0,0,0,12"/>
                                 <TextBlock Text="ГОТОВ К ЗАПУСКУ?" FontSize="11" Foreground="#C0C8D5"/>
