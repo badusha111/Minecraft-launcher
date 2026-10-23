@@ -173,7 +173,7 @@
                                 </Grid>
                                 <Border Background="#171522" BorderBrush="#B89552" BorderThickness="1" CornerRadius="9" Padding="3">
                                     <ComboBox x:Name="LoaderSelector" Height="42" SelectedIndex="0" BorderThickness="0" Background="#171522" Foreground="#C084FC" ToolTip="Выбери обычную игру или загрузчик модов">
-                                        <ComboBoxItem Content="Vanilla  ·  Обычная игра"/>
+                                        <ComboBoxItem Content="Vanilla"/>
                                         <ComboBoxItem Content="Fabric  ·  Лёгкий загрузчик"/>
                                         <ComboBoxItem Content="Forge  ·  Продвинутые моды"/>
                                     </ComboBox>
@@ -211,8 +211,8 @@
                                     <TextBlock Text="Подготовим автоматическую установку и обновление модов." TextWrapping="Wrap" Foreground="#D0D8E0" FontSize="12"/>
                                 </StackPanel>
                             </Border>
-                            <Button x:Name="PlayButton" Height="66" Background="{StaticResource GreenBrush}" Foreground="#092318" BorderThickness="0" FontSize="25" FontWeight="Black" Content="ИГРАТЬ" Cursor="Hand" Click="Play_Click">
-                                <Button.Template><ControlTemplate TargetType="Button"><Border Background="{TemplateBinding Background}" CornerRadius="12"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></ControlTemplate></Button.Template>
+                            <Button x:Name="PlayButton" Height="66" Background="#7C3AED" Foreground="#FFFFFF" BorderThickness="0" FontSize="25" FontWeight="Black" Content="ИГРАТЬ" Cursor="Hand" Click="Play_Click">
+                                <Button.Template><ControlTemplate TargetType="Button"><Border CornerRadius="12"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#8B5CF6" Offset="0"/><GradientStop Color="#6D28D9" Offset="1"/></LinearGradientBrush></Border.Background><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></ControlTemplate>
                             </Button>
                             <TextBlock Text="ПЕРВАЯ УСТАНОВКА СКАЧАЕТ ФАЙЛЫ ИГРЫ" TextAlignment="Center" TextWrapping="Wrap" Foreground="#C0C8D5" FontSize="10" Margin="0,10,0,0"/>
                         </StackPanel>
