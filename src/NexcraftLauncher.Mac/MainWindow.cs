@@ -66,7 +66,11 @@ public sealed class MainWindow : Window
         root.Children.Add(BuildSidebar());
         var right = new Grid { RowDefinitions = new RowDefinitions("62,*") };
         var header = new Grid { Margin = new Thickness(26, 0, 26, 0), ColumnDefinitions = new ColumnDefinitions("*,Auto") };
-        header.Children.Add(new TextBlock { Text = "ЦЕНТР ИГРЫ", FontSize = 10, Foreground = Brush("#AEB8C8"), VerticalAlignment = VerticalAlignment.Center });
+        var brandHeader = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, VerticalAlignment = VerticalAlignment.Center };
+        brandHeader.Children.Add(new TextBlock { Text = "NEXCRAFT", FontSize = 20, FontWeight = FontWeight.Bold, Foreground = Brush("#F5F7FA"), VerticalAlignment = VerticalAlignment.Center });
+        brandHeader.Children.Add(new Border { Width = 1, Height = 24, Background = Brush("#8B5CF6"), VerticalAlignment = VerticalAlignment.Center });
+        brandHeader.Children.Add(new TextBlock { Text = "Официальный лаунчер МЕХМАТА", FontSize = 13, FontWeight = FontWeight.SemiBold, Foreground = Brush("#C084FC"), VerticalAlignment = VerticalAlignment.Center });
+        header.Children.Add(brandHeader);
         var ready = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
         ready.Children.Add(new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Background = Brush("#19F58A"), VerticalAlignment = VerticalAlignment.Center });
         ready.Children.Add(new TextBlock { Text = "Лаунчер готов", FontSize = 12, Foreground = Brush("#E0E5ED"), VerticalAlignment = VerticalAlignment.Center });
@@ -189,9 +193,9 @@ public sealed class MainWindow : Window
             EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
             GradientStops = new GradientStops
             {
-                new GradientStop(Color.Parse("#27384A"), 0),
-                new GradientStop(Color.Parse("#20243B"), 0.48),
-                new GradientStop(Color.Parse("#172C28"), 1)
+                new GradientStop(Color.Parse("#211447"), 0),
+                new GradientStop(Color.Parse("#171A35"), 0.48),
+                new GradientStop(Color.Parse("#102B32"), 1)
             }
         };
         var hero = new Border
@@ -203,17 +207,17 @@ public sealed class MainWindow : Window
             BorderThickness = new Thickness(1),
             Child = heroGrid
         };
-        heroGrid.Children.Add(new Border { Width = 8, Background = Brush("#FF9D45"), HorizontalAlignment = HorizontalAlignment.Left });
+        heroGrid.Children.Add(new Border { Width = 8, Background = Brush("#8B5CF6"), HorizontalAlignment = HorizontalAlignment.Left });
         var heroText = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(34, 0, 0, 0), Spacing = 4 };
         heroText.Children.Add(new Border
         {
             Background = Brush("#1B2029"), CornerRadius = new CornerRadius(4),
             Padding = new Thickness(10, 5), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 11),
-            Child = new TextBlock { Text = "НОВОЕ ПРИКЛЮЧЕНИЕ", FontSize = 10, FontWeight = FontWeight.Bold, Foreground = Brush("#19F58A") }
+            Child = new TextBlock { Text = "NEXCRAFT — ЭТО НЕ ПРОСТО ЛАУНЧЕР", FontSize = 10, FontWeight = FontWeight.Bold, Foreground = Brush("#19F58A") }
         });
         heroText.Children.Add(new TextBlock { Text = "ТВОЙ МИР.", FontSize = 39, FontWeight = FontWeight.Black, Foreground = Brushes.White });
-        heroText.Children.Add(new TextBlock { Text = "ТВОИ ПРАВИЛА.", FontSize = 39, FontWeight = FontWeight.Black, Foreground = Brush("#19F58A") });
-        heroText.Children.Add(new TextBlock { Text = "Подготовься к игре — остальное впереди.", FontSize = 14, Foreground = Brush("#E2E7EF"), Margin = new Thickness(0, 10, 0, 0) });
+        heroText.Children.Add(new TextBlock { Text = "ТВОИ ПРАВИЛА.", FontSize = 39, FontWeight = FontWeight.Black, Foreground = Brush("#B45CFF") });
+        heroText.Children.Add(new TextBlock { Text = "Это твой мир, твои правила.", FontSize = 14, Foreground = Brush("#E2E7EF"), Margin = new Thickness(0, 10, 0, 0) });
         heroGrid.Children.Add(heroText);
         heroGrid.Children.Add(new Border
         {
