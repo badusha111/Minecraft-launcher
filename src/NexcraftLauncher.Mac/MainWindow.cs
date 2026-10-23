@@ -16,7 +16,7 @@ namespace NexcraftLauncherMac;
 public sealed class MainWindow : Window
 {
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(20) };
-    private string _gameDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".minecraft");
+    private string _gameDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "NEXCRAFT", "instances", "default");
     private int _minimumRamMb = 1024;
     private int _maximumRamMb = 4096;
     private bool _closeLauncherOnGameStart;
