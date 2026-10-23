@@ -23,11 +23,12 @@ public sealed class MainWindow : Window
     private int _maximumRamMb = 4096;
     private bool _closeLauncherOnGameStart;
     private readonly List<Button> _navigationButtons = new();
+    private Button? _activeNavigationButton;
     private readonly string _settingsFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "NEXCRAFT", "settings.json");
     private readonly StackPanel _mainContent = new() { Spacing = 12 };
     private readonly TextBlock _status = new() { Text = "NEXCRAFT для macOS · готов к настройке", Foreground = Brush("#B8C1D0"), TextWrapping = TextWrapping.Wrap };
     private readonly ComboBox _versions = new() { MinWidth = 210, ItemsSource = new[] { "1.21.1", "1.20.1", "1.16.5" }, SelectedItem = "1.21.1" };
-    private readonly ComboBox _loaders = new() { MinWidth = 210, ItemsSource = new[] { "Vanilla — обычная игра", "Fabric — лёгкий загрузчик модов", "Forge — загрузчик модов" }, SelectedItem = "Vanilla — обычная игра" };
+    private readonly ComboBox _loaders = new() { MinWidth = 210, ItemsSource = new[] { "Vanilla", "Fabric — лёгкий загрузчик модов", "Forge — загрузчик модов" }, SelectedItem = "Vanilla" };
     private readonly TextBox _nickname = new() { Watermark = "Ник игрока", MaxLength = 16 };
     private readonly Button _play = new() { Content = "Играть", HorizontalContentAlignment = HorizontalAlignment.Center };
     private readonly Button _login = new() { Content = "Войти через Microsoft", HorizontalContentAlignment = HorizontalAlignment.Center };
@@ -54,7 +55,7 @@ public sealed class MainWindow : Window
         Height = 780;
         MinWidth = 1040;
         MinHeight = 680;
-        Background = Brush("#101319");
+        Background = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative), GradientStops = { new GradientStop(Color.Parse("#100B1D"), 0), new GradientStop(Color.Parse("#1C1233"), 0.55), new GradientStop(Color.Parse("#100B1D"), 1) } };
         Foreground = Brushes.White;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
@@ -62,8 +63,8 @@ public sealed class MainWindow : Window
         {
             Margin = new Thickness(16),
             CornerRadius = new CornerRadius(18),
-            Background = Brush("#151922"),
-            BorderBrush = Brush("#303744"),
+            Background = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative), GradientStops = { new GradientStop(Color.Parse("#17102D"), 0), new GradientStop(Color.Parse("#101525"), 0.52), new GradientStop(Color.Parse("#24113D"), 1) } },
+            BorderBrush = Brush("#51427D"),
             BorderThickness = new Thickness(1)
         };
         var root = new Grid { ColumnDefinitions = new ColumnDefinitions("200,*") };
@@ -142,7 +143,7 @@ public sealed class MainWindow : Window
         footer.Children.Add(new TextBlock { Text = "РАННЯЯ ВЕРСИЯ", FontSize = 9, Foreground = Brush("#FF9D45") });
         Grid.SetRow(footer, 2);
         layout.Children.Add(footer);
-        return new Border { Background = Brush("#0C1222"), Child = layout };
+        return new Border { Background = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(0, 1, RelativeUnit.Relative), GradientStops = { new GradientStop(Color.Parse("#120D23"), 0), new GradientStop(Color.Parse("#0C1222"), 1) } }, Child = layout };
     }
 
     private Button NavButton(string title, Action action, bool navigation = false)
@@ -151,9 +152,9 @@ public sealed class MainWindow : Window
         {
             Content = title,
             HorizontalContentAlignment = HorizontalAlignment.Left,
-            Background = Brush("#202631"),
+            Background = Brush("#202034"),
             Foreground = Brushes.White,
-            BorderBrush = Brush("#343D4D"),
+            BorderBrush = Brush("#51427D"),
             Padding = new Thickness(12),
             CornerRadius = new CornerRadius(8)
         };
@@ -162,18 +163,25 @@ public sealed class MainWindow : Window
             if (navigation) SetActiveNavigation(button);
             action();
         };
-        if (navigation) _navigationButtons.Add(button);
+        if (navigation)
+        {
+            _navigationButtons.Add(button);
+            button.PointerEntered += (_, _) => button.Foreground = Brush("#080611");
+            button.PointerExited += (_, _) => button.Foreground = Brush(ReferenceEquals(_activeNavigationButton, button) ? "#C084FC" : "#C7CEDA");
+            button.PointerPressed += (_, _) => button.Foreground = Brush("#C084FC");
+        }
         return button;
     }
 
     private void SetActiveNavigation(Button active)
     {
+        _activeNavigationButton = active;
         foreach (var button in _navigationButtons)
         {
             var selected = ReferenceEquals(button, active);
-            button.Background = Brush(selected ? "#25213A" : "#151922");
-            button.Foreground = Brush(selected ? "#B99AFF" : "#C7CEDA");
-            button.BorderBrush = Brush(selected ? "#51427D" : "#151922");
+            button.Background = Brush(selected ? "#30204F" : "#151522");
+            button.Foreground = Brush(selected ? "#C084FC" : "#C7CEDA");
+            button.BorderBrush = Brush(selected ? "#8B5CF6" : "#151522");
         }
     }
 
@@ -263,8 +271,8 @@ public sealed class MainWindow : Window
         _nickname.BorderThickness = new Thickness(1);
         profile.Children.Add(_nickname);
         var versionLabel = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 8, 0, 0) };
-        versionLabel.Children.Add(new TextBlock { Text = "ВЕРСИЯ MINECRAFT", FontSize = 12, FontWeight = FontWeight.Bold, Foreground = Brush("#E2C27A"), VerticalAlignment = VerticalAlignment.Center });
-        Grid.SetColumn(new Border { Background = Brush("#292318"), BorderBrush = Brush("#B89552"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Thickness(7, 3), Child = new TextBlock { Text = "JAVA EDITION", FontSize = 9, FontWeight = FontWeight.Bold, Foreground = Brush("#F0D9A0") } }, 1);
+        versionLabel.Children.Add(new TextBlock { Text = "ВЕРСИЯ MINECRAFT", FontSize = 12, FontWeight = FontWeight.Bold, Foreground = Brush("#C084FC"), VerticalAlignment = VerticalAlignment.Center });
+        Grid.SetColumn(new Border { Background = Brush("#29213D"), BorderBrush = Brush("#8B5CF6"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Thickness(7, 3), Child = new TextBlock { Text = "JAVA EDITION", FontSize = 9, FontWeight = FontWeight.Bold, Foreground = Brush("#DCCBFF") } }, 1);
         var javaBadge = versionLabel.Children[0] as Control;
         var badge = new Border { Background = Brush("#29213D"), BorderBrush = Brush("#6B4DFF"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Thickness(7, 3), Child = new TextBlock { Text = "JAVA", FontSize = 9, FontWeight = FontWeight.Bold, Foreground = Brush("#D9CCFF") } };
         Grid.SetColumn(badge, 1);
@@ -809,7 +817,7 @@ public sealed class MainWindow : Window
             if (document.RootElement.TryGetProperty("selectedLoader", out var selectedLoader) && !string.IsNullOrWhiteSpace(selectedLoader.GetString()))
                 _loaders.SelectedItem = _loaders.ItemsSource is IEnumerable<string> options
                     ? options.FirstOrDefault(option => option == selectedLoader.GetString()) ?? options.First()
-                    : "Vanilla — обычная игра";
+                    : "Vanilla";
             if (document.RootElement.TryGetProperty("gameDirectory", out var gameDirectory) && !string.IsNullOrWhiteSpace(gameDirectory.GetString()))
                 _gameDirectory = gameDirectory.GetString()!;
             if (document.RootElement.TryGetProperty("minimumRamMb", out var minimumRam) && minimumRam.TryGetInt32(out var min))
@@ -963,8 +971,8 @@ public sealed class MainWindow : Window
             SaveSettings();
             _status.Text = "Настройки сохранены.";
         });
-        save.Background = Brush("#19F58A");
-        save.Foreground = Brush("#092318");
+        save.Background = new LinearGradientBrush { StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative), EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative), GradientStops = { new GradientStop(Color.Parse("#8B5CF6"), 0), new GradientStop(Color.Parse("#6D28D9"), 1) } };
+        save.Foreground = Brushes.White;
         save.FontWeight = FontWeight.Bold;
         save.HorizontalContentAlignment = HorizontalAlignment.Center;
         _mainContent.Children.Add(save);
