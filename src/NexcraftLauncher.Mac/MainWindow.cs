@@ -276,12 +276,24 @@ public sealed class MainWindow : Window
         _versions.BorderBrush = Brush("#8B6BFF");
         profile.Children.Add(_versions);
         profile.Children.Add(new TextBlock { Text = "ЗАГРУЗЧИК", FontSize = 11, FontWeight = FontWeight.Bold, Foreground = Brush("#B99AFF"), Margin = new Thickness(0, 12, 0, 4) });
-        _loaders.Height = 42;
-        _loaders.Background = Brush("#202631");
-        _loaders.Foreground = Brush("#FFB86B");
-        _loaders.BorderBrush = Brush("#8B6BFF");
-        profile.Children.Add(_loaders);
-        profile.Children.Add(new TextBlock { Text = "Выбери версию игры и способ загрузки модов.", TextWrapping = TextWrapping.Wrap, Foreground = Brush("#AEB8C8"), FontSize = 11 });
+        _loaders.Height = 44;
+        _loaders.Background = Brush("#171522");
+        _loaders.Foreground = Brush("#F0D9A0");
+        _loaders.BorderBrush = Brush("#B89552");
+        _loaders.Padding = new Thickness(10, 7);
+        _loaders.FontSize = 13;
+        _loaders.FontWeight = FontWeight.SemiBold;
+        var loaderShell = new Border
+        {
+            Background = Brush("#171522"),
+            BorderBrush = Brush("#B89552"),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(9),
+            Padding = new Thickness(3),
+            Child = _loaders
+        };
+        profile.Children.Add(loaderShell);
+        profile.Children.Add(new TextBlock { Text = "Vanilla · обычная игра     Fabric · лёгкие моды     Forge · крупные сборки", TextWrapping = TextWrapping.Wrap, Foreground = Brush("#AFA5C2"), FontSize = 10, Margin = new Thickness(2, 7, 0, 0) });
         _login.Background = Brush("#29243B");
         _login.Foreground = Brushes.White;
         _login.Padding = new Thickness(14, 10);
