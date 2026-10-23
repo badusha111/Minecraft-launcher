@@ -40,9 +40,22 @@ jobs:
           Copy-Item "packaging/Install-NEXCRAFT.bat" "artifacts/NEXCRAFT/Install-NEXCRAFT.bat"
           Copy-Item "packaging/Install-NEXCRAFT.ps1" "artifacts/NEXCRAFT/Install-NEXCRAFT.ps1"
 
-      - name: Upload launcher artifact
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+
+      - name: Build Windows installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path artifacts/installer -Force | Out-Null
+          & "C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe" packaging/NEXCRAFT-Setup.iss
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with exit code $LASTEXITCODE" }
+
+      - name: Upload launcher and installer
         uses: actions/upload-artifact@v4
         with:
           name: NEXCRAFT-Windows-x64
-          path: artifacts/NEXCRAFT/
+          path: |
+            artifacts/NEXCRAFT/
+            artifacts/installer/NEXCRAFT-Setup.exe
           if-no-files-found: error
