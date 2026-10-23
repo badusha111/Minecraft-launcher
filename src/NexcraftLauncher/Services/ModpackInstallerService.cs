@@ -52,6 +52,8 @@ public sealed class ModpackInstallerService
                 HttpCompletionOption.ResponseHeadersRead,
                 cancellationToken);
             response.EnsureSuccessStatusCode();
+            if (response.RequestMessage?.RequestUri?.Scheme != Uri.UriSchemeHttps)
+                throw new InvalidDataException("Modpack download redirects must remain on HTTPS.");
 
             if (response.Content.Headers.ContentLength is long length && length > MaximumFileBytes)
                 throw new InvalidDataException("The requested modpack file exceeds the 512 MB limit.");
