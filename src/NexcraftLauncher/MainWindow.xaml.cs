@@ -243,18 +243,9 @@ public partial class MainWindow : Window
                 Session = session
             };
 
-            // ЖЕСТКАЯ РАЗБЛОКИРОВКА КНОПКИ МУЛЬТИПЛЕЕРА ДЛЯ CMLIB V4
-            // Если включен оффлайн-режим, мы принудительно заставляем лаунчер дописать
-            // в аргументы запуска Minecraft флаг "--userType legacy".
-            // Это полностью снимет защиту родительского контроля клиента игры и активирует кнопку!
-            if (_offlineMode)
-            {
-                launchOption.ArgumentBuilders.Add(new CmlLib.Core.ProcessBuilder.GenericArgumentBuilder(new[] {
-                    "--userType", "legacy"
-                }));
-            }
-
-
+            // В текущей версии CmlLib нет ArgumentBuilders/GenericArgumentBuilder.
+            // Офлайн-профиль и сессия сохранены; не добавляем неподдерживаемые аргументы.
+            
             StatusText.Text = "Анализ необходимых файлов и загрузка компонентов...";
             
             Process process = await launcher.InstallAndBuildProcessAsync(version, launchOption);
