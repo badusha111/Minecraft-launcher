@@ -1,0 +1,61 @@
+<Window x:Class="NexcraftLauncher.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="NEXCRAFT — Настройки" Width="600" Height="520"
+        MinWidth="560" MinHeight="480" WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResizeWithGrip"
+        Background="{StaticResource BgBrush}" Foreground="#F5F7FA">
+    <Grid Margin="22">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel Margin="0,0,0,20">
+            <TextBlock Text="НАСТРОЙКИ ЛАУНЧЕРА" Foreground="{StaticResource GreenBrush}" FontSize="11" FontWeight="Bold"/>
+            <TextBlock Text="Подстрой игру под свой компьютер" FontSize="22" FontWeight="SemiBold" Margin="0,6,0,0"/>
+        </StackPanel>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="Папка игры" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <DockPanel>
+                    <Button x:Name="BrowseButton" DockPanel.Dock="Right" Content="Обзор…" Padding="14,8" Margin="10,0,0,0" Click="BrowseButton_Click"/>
+                    <TextBox x:Name="GameDirectoryBox" Height="36" Padding="9,8" VerticalContentAlignment="Center" Background="#202631" Foreground="#F5F7FA" BorderBrush="#394252"/>
+                </DockPanel>
+                <TextBlock Text="Память для Minecraft (МБ)" FontSize="13" FontWeight="SemiBold" Margin="0,20,0,8"/>
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,8,0">
+                        <TextBlock Text="Минимум" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,0,0,6"/>
+                        <ComboBox x:Name="MinimumMemoryBox" Height="36" SelectedIndex="1" Background="#202631" Foreground="#F5F7FA">
+                            <ComboBoxItem Content="512"/>
+                            <ComboBoxItem Content="1024"/>
+                            <ComboBoxItem Content="2048"/>
+                            <ComboBoxItem Content="4096"/>
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                        <TextBlock Text="Максимум" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,0,0,6"/>
+                        <ComboBox x:Name="MaximumMemoryBox" Height="36" SelectedIndex="2" Background="#202631" Foreground="#F5F7FA">
+                            <ComboBoxItem Content="2048"/>
+                            <ComboBoxItem Content="4096"/>
+                            <ComboBoxItem Content="6144"/>
+                            <ComboBoxItem Content="8192"/>
+                            <ComboBoxItem Content="12288"/>
+                            <ComboBoxItem Content="16384"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+                <CheckBox x:Name="CloseLauncherCheckBox" Content="Закрывать лаунчер после запуска игры" Margin="0,20,0,0" Foreground="#D3D8E1"/>
+                <Border Background="#202631" CornerRadius="8" Padding="12" Margin="0,20,0,0">
+                    <TextBlock Text="Эти параметры уже сохраняются в настройках Windows. Подключение их к запуску Minecraft будет добавлено вместе с механизмом запуска игры." TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" FontSize="11"/>
+                </Border>
+                <TextBlock x:Name="ErrorText" Foreground="#FF9D45" TextWrapping="Wrap" Margin="0,12,0,0" FontSize="11"/>
+            </StackPanel>
+        </ScrollViewer>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+            <Button Content="Отмена" Padding="18,10" Margin="0,0,10,0" Click="CancelButton_Click"/>
+            <Button Content="Сохранить" Padding="18,10" Background="{StaticResource GreenBrush}" Foreground="#092318" FontWeight="Bold" BorderThickness="0" Click="SaveButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
