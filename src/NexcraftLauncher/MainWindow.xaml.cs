@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Diagnostics;
+using Microsoft.Win32;
 using NexcraftLauncher.Models;
 using NexcraftLauncher.Services;
 
@@ -70,6 +71,9 @@ public partial class MainWindow : Window
     private void Home_Click(object sender, RoutedEventArgs e)
     {
         SetActiveNavigation(HomeNavButton);
+        HomeScrollViewer.Visibility = Visibility.Visible;
+        SectionScrollViewer.Visibility = Visibility.Collapsed;
+        SectionContent.Children.Clear();
         ShowHomeView();
     }
 
@@ -164,7 +168,7 @@ public partial class MainWindow : Window
             }
         }
 
-        ShowSectionWindow("NEXCRAFT — Моды и сборки", content, 650, 560);
+        ShowSectionPage(content);
     }
 
     private void Library_Click(object sender, RoutedEventArgs e)
@@ -225,7 +229,7 @@ public partial class MainWindow : Window
             }
         }
 
-        ShowSectionWindow("NEXCRAFT — Библиотека", content, 600, 500);
+        ShowSectionPage(content);
     }
 
     private void Settings_Click(object sender, RoutedEventArgs e)
@@ -260,35 +264,12 @@ public partial class MainWindow : Window
         activeButton.BorderBrush = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#51427D");
     }
 
-    private void ShowSectionWindow(string title, UIElement content, double width, double height)
+    private void ShowSectionPage(UIElement content)
     {
-        var scrollViewer = new ScrollViewer
-        {
-            Content = content,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto
-        };
-        var window = new Window
-        {
-            Title = title,
-            Width = width,
-            Height = height,
-            MinWidth = 480,
-            MinHeight = 380,
-            Owner = this,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#151922"),
-            Foreground = System.Windows.Media.Brushes.White,
-            Content = new Border
-            {
-                Margin = new Thickness(14),
-                CornerRadius = new CornerRadius(14),
-                Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#191F2A"),
-                BorderBrush = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFromString("#343D4D"),
-                BorderThickness = new Thickness(1),
-                Child = scrollViewer
-            }
-        };
-        window.ShowDialog();
+        HomeScrollViewer.Visibility = Visibility.Collapsed;
+        SectionContent.Children.Clear();
+        SectionContent.Children.Add(content);
+        SectionScrollViewer.Visibility = Visibility.Visible;
     }
 
     private void ShowHomeView()
