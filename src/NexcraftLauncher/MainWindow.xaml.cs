@@ -147,11 +147,9 @@ public partial class MainWindow : Window
                 Session = session
             };
 
-            // 🔥 ГАРАНТИРОВАННАЯ РАЗБЛОКИРОВКА МУЛЬТИПЛЕЕРА ДЛЯ CMLIB V4.x
-            // Переопределяем параметры лаунчера на уровне правил среды (Rules Context)
-            // Это легальный способ заставить ядро CmlLib принудительно добавить аргумент запуска legacy
-            launchOption.RulesContext.Properties["user_type"] = "legacy";
-            launchOption.RulesContext.Properties["user_properties"] = "{}";
+            // RulesContext отсутствует в используемой версии CmlLib.
+            // Сохраняем штатные параметры запуска; доступ к сетевой игре зависит от версии клиента
+            // и настроек сервера, а не от этого неподдерживаемого свойства.
 
             StatusText.Text = "Анализ файлов и загрузка компонентов...";
             
