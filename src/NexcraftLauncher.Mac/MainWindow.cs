@@ -23,7 +23,7 @@ public sealed class MainWindow : Window
     private readonly string _settingsFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "NEXCRAFT", "settings.json");
     private readonly StackPanel _mainContent = new() { Spacing = 12 };
     private readonly TextBlock _status = new() { Text = "NEXCRAFT для macOS · готов к настройке", Foreground = Brush("#B8C1D0"), TextWrapping = TextWrapping.Wrap };
-    private readonly ComboBox _versions = new() { MinWidth = 210 };
+    private readonly ComboBox _versions = new() { MinWidth = 210, ItemsSource = new[] { "1.21.1", "1.20.1", "1.16.5" }, SelectedItem = "1.21.1" };
     private readonly TextBox _nickname = new() { Watermark = "Ник игрока", MaxLength = 16 };
     private readonly Button _play = new() { Content = "Играть", HorizontalContentAlignment = HorizontalAlignment.Center };
     private readonly Button _login = new() { Content = "Войти через Microsoft", HorizontalContentAlignment = HorizontalAlignment.Center };
@@ -37,6 +37,7 @@ public sealed class MainWindow : Window
         InitializeWindowShell();
         LoadSettings();
         _nickname.TextChanged += (_, _) => SaveSettings();
+        _versions.SelectionChanged += (_, _) => SaveSettings();
         ShowHome();
         Opened += async (_, _) => await LoadVersionsAsync();
     }
@@ -648,7 +649,6 @@ public sealed class MainWindow : Window
                 _versions.SelectedItem = releases.FirstOrDefault(v => v == _savedVersion)
                     ?? releases.FirstOrDefault(v => v == "1.21.1")
                     ?? releases.FirstOrDefault();
-                _versions.SelectionChanged += (_, _) => SaveSettings();
                 _savedVersion = _versions.SelectedItem?.ToString();
                 _status.Text = $"Загружено официальных релизов Minecraft: {releases.Length}";
             });
