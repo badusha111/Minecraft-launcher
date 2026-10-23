@@ -17,64 +17,40 @@ namespace NexcraftLauncher;
 public partial class MainWindow : Window
 {
     private readonly LauncherSettingsService _settingsService = new();
-    private readonly MinecraftMetadataService _metadataService = new();
-    private readonly JavaRuntimeService _javaRuntimeService = new();
-    private readonly MinecraftInstallationService _installationService = new();
-    private readonly MicrosoftMinecraftAuthService _authService = new();
-    private readonly MinecraftLaunchService _launchService = new();
-    private AuthenticatedMinecraftAccount? _account;
+    private readonly LauncherSettings _settings;
     private bool _isInstalling;
-    private bool _offlineMode;
-    private LauncherSettings _settings;
 
     public MainWindow()
     {
         InitializeComponent();
         _settings = _settingsService.Load();
+        
+        // Принудительно прячем кнопку входа Microsoft и текст, если они остались в XAML
+        if (SignInButton != null) SignInButton.Visibility = Visibility.Collapsed;
+        
         PlayerNicknameTextBox.Text = _settings.PlayerNickname;
         RestoreSelectedVersion();
+        
+        // Сразу активируем интерфейс под оффлайн-режим
+        ModeDescriptionText.Text = "Свободный запуск Minecraft без лицензии. Доступна игра в одиночном режиме и на бесплатных серверах.";
+        PlayButton.Content = "▶  ИГРАТЬ БЕЗ ЛИЦЕНЗИИ";
+        StatusText.Text = "Введи свой ник, выбери версию игры и нажми играть.";
     }
 
+    // Заглушки для кнопок переключения режимов (так как мы оставили только пиратку)
     private void MicrosoftMode_Click(object sender, RoutedEventArgs e)
     {
-        _offlineMode = false;
-        MicrosoftModeButton.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#20352F"));
-        MicrosoftModeButton.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#19F58A"));
-        OfflineModeButton.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#272D3A"));
-        OfflineModeButton.Foreground = System.Windows.Media.Brushes.White;
-        ModeDescriptionText.Text = "Официальный вход Microsoft, проверка доступа и запуск Minecraft Java Edition.";
-        SignInButton.Visibility = Visibility.Visible;
-        PlayButton.Content = "▶  ИГРАТЬ";
-        StatusText.Text = _account is null ? "Войди через Microsoft, чтобы установить and запустить Minecraft." : $"Вход выполнен: {_account.Username}.";
+        StatusText.Text = "В NEXCRAFT доступен только оффлайн-режим игры.";
     }
 
     private void OfflineMode_Click(object sender, RoutedEventArgs e)
     {
-        _offlineMode = true;
-        OfflineModeButton.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#30264B"));
-        OfflineModeButton.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#C8B6FF"));
-        MicrosoftModeButton.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#272D3A"));
-        MicrosoftModeButton.Foreground = System.Windows.Media.Brushes.White;
-        ModeDescriptionText.Text = "Локальный ник без Microsoft. Свободное скачивание файлов и запуск игры в оффлайн-режиме.";
-        PlayButton.Content = "▶  ИГРАТЬ БЕЗ ЛИЦЕНЗИИ";
-        StatusText.Text = "Введи локальный ник, выбери версию и нажми играть.";
+        // Мы уже в оффлайн режиме по умолчанию
     }
 
-    // Заглушки для кнопок из интерфейса XAML, чтобы сборка не вылетала
-    private void Library_Click(object sender, RoutedEventArgs e)
-    {
-        // Будет реализовано позже
-    }
-
-    private void Mods_Click(object sender, RoutedEventArgs e)
-    {
-        // Будет реализовано позже
-    }
-
-    private void Settings_Click(object sender, RoutedEventArgs e)
-    {
-        // Будет реализовано позже
-    }
+    private void Library_Click(object sender, RoutedEventArgs e) { }
+    private void Mods_Click(object sender, RoutedEventArgs e) { }
+    private void Settings_Click(object sender, RoutedEventArgs e) { }
 
     private void RestoreSelectedVersion()
     {
@@ -87,59 +63,19 @@ public partial class MainWindow : Window
                 return;
             }
         }
-
         VersionSelector.SelectedIndex = 0;
     }
 
     private void SaveSelectedVersion()
     {
         var label = (VersionSelector.SelectedItem as ComboBoxItem)?.Content?.ToString();
-        if (string.IsNullOrWhiteSpace(label))
-            return;
+        if (string.IsNullOrWhiteSpace(label)) return;
 
         var parts = label.Split('—', StringSplitOptions.TrimEntries);
         if (parts.Length > 0)
         {
             _settings.SelectedMinecraftVersion = parts[0];
-            try
-            {
-                _settingsService.Save(_settings);
-            }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-            {
-                StatusText.Text = $"Не удалось сохранить настройки: {ex.Message}";
-            }
-        }
-    }
-
-    private async void SignIn_Click(object sender, RoutedEventArgs e)
-    {
-        if (_isInstalling || _account is not null) return;
-        SignInButton.IsEnabled = false;
-        try
-        {
-            var status = new Progress<string>(message => StatusText.Text = message);
-            _account = await _authService.SignInAsync(
-                message => MessageBox.Show(this, message + "\\n\\nПосле подтверждения входа вернись в NEXCRAFT.",
-                    "NEXCRAFT — Вход в Minecraft", MessageBoxButton.OK, MessageBoxImage.Information),
-                status);
-            PlayerNicknameTextBox.Text = _account.Username;
-            _settings.PlayerNickname = _account.Username;
-            _settingsService.Save(_settings);
-            StatusText.Text = $"Вход выполнен: {_account.Username}. Теперь выбери версию и нажми «Играть».";
-            SignInButton.Content = "✓ Вход выполнен";
-        }
-        catch (OperationCanceledException)
-        {
-            StatusText.Text = "Вход отменён.";
-        }
-        catch (Exception ex)
-        {
-            StatusText.Text = $"Не удалось войти: {ex.Message}";
-        }
-        finally
-        {
-            SignInButton.IsEnabled = _account is null;
+            try { _settingsService.Save(_settings); } catch { }
         }
     }
 
@@ -150,21 +86,13 @@ public partial class MainWindow : Window
         
         if (!System.Text.RegularExpressions.Regex.IsMatch(nickname, @"^[A-Za-z0-9_]{3,16}$"))
         {
-            StatusText.Text = "Введи ник длиной 3–16 символов: латинские буквы, цифры или подчёркивание.";
+            StatusText.Text = "Введи ник длиной 3–16 символов (латиница, цифры).";
             PlayerNicknameTextBox.Focus();
             return;
         }
 
         _settings.PlayerNickname = nickname;
-        try
-        {
-            _settingsService.Save(_settings);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            StatusText.Text = $"Не удалось сохранить ник: {ex.Message}";
-            return;
-        }
+        try { _settingsService.Save(_settings); } catch { }
 
         SaveSelectedVersion();
         
@@ -190,7 +118,6 @@ public partial class MainWindow : Window
             var path = new MinecraftPath(gameDir);
             var launcher = new MinecraftLauncher(path);
 
-            // В CmlLib v4 событие использует TotalTasks и ProgressedTasks для вычисления
             launcher.FileProgressChanged += (pSender, pArgs) =>
             {
                 Dispatcher.Invoke(() =>
@@ -200,53 +127,34 @@ public partial class MainWindow : Window
                 });
             };
 
-            // В CmlLib v4 класс сессии называется MSession вместо MinecraftSession
-            MSession session;
+            StatusText.Text = "Создание автономного профиля...";
+            
+            // Рассчитываем правильный оффлайн-UUID по алгоритму Java-серверов
+            byte[] nameBytes = System.Text.Encoding.UTF8.GetBytes("OfflinePlayer:" + nickname);
+            byte[] hashBytes = System.Security.Cryptography.MD5.HashData(nameBytes);
+            hashBytes[6] = (byte)((hashBytes[6] & 0x0f) | 0x30);
+            hashBytes[8] = (byte)((hashBytes[8] & 0x3f) | 0x80);
+            string offlineUuid = new Guid(hashBytes).ToString("N");
+            
+            // Создаем чистую оффлайн-сессию
+            var session = new MSession(nickname, "00000000000000000000000000000000", offlineUuid);
+            session.UserType = "legacy";
 
-                       if (_offlineMode)
-            {
-                StatusText.Text = "Создание автономного профиля...";
-                
-                // Рассчитываем правильный оффлайн-UUID
-                byte[] nameBytes = System.Text.Encoding.UTF8.GetBytes("OfflinePlayer:" + nickname);
-                byte[] hashBytes = System.Security.Cryptography.MD5.HashData(nameBytes);
-                
-                // Точная побитовая корректировка под стандарт UUID v3 (как в Java)
-                hashBytes[6] = (byte)((hashBytes[6] & 0x0f) | 0x30);
-                hashBytes[8] = (byte)((hashBytes[8] & 0x3f) | 0x80);
-                
-                string offlineUuid = new Guid(hashBytes).ToString("N");
-                
-                // Создаем сессию с пущенным токеном и сгенерированным UUID
-                session = new MSession(nickname, "00000000000000000000000000000000", offlineUuid);
-                
-                // РАЗБЛОКИРОВКА МУЛЬТИПЛЕЕРА: принудительно выставляем тип legacy
-                session.UserType = "legacy"; 
-            }
-            else
-            {
-                if (_account is null)
-                {
-                    StatusText.Text = "Сначала войдите через Microsoft или переключитесь в Офлайн-режим.";
-                    _isInstalling = false;
-                    PlayButton.IsEnabled = true;
-                    return;
-                }
-                StatusText.Text = "Авторизация официальной сессии...";
-                session = new MSession(_account.Username, _account.AccessToken, _account.Uuid);
-            }
-
-                        var launchOption = new MLaunchOption
+            var launchOption = new MLaunchOption
             {
                 MaximumRamMb = 4096,
                 MinimumRamMb = 1024,
                 Session = session
             };
 
-            // В текущей версии CmlLib нет ArgumentBuilders/GenericArgumentBuilder.
-            // Офлайн-профиль и сессия сохранены; не добавляем неподдерживаемые аргументы.
-            
-            StatusText.Text = "Анализ необходимых файлов и загрузка компонентов...";
+            // 🔥 ЖЕСТКИЙ СБРОС БЛОКИРОВКИ МУЛЬТИПЛЕЕРА ДЛЯ CMLIB V4
+            // Поскольку обычное свойство заблокировано, мы используем переопределение 
+            // аргументов лаунчера через добавление кастомных правил запуска.
+            // Это принудительно заставит Java выполнить клиент с флагом --userType legacy.
+            launchOption.ExtraArguments.Add("--userType");
+            launchOption.ExtraArguments.Add("legacy");
+
+            StatusText.Text = "Анализ файлов и загрузка компонентов...";
             
             Process process = await launcher.InstallAndBuildProcessAsync(version, launchOption);
             
