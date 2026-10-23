@@ -31,6 +31,10 @@ public partial class MainWindow : Window
         
         PlayerNicknameTextBox.Text = _settings.PlayerNickname;
         RestoreSelectedVersion();
+        foreach (ComboBoxItem item in LoaderSelector.Items)
+            if (string.Equals(item.Content?.ToString(), _settings.SelectedMinecraftLoader, StringComparison.OrdinalIgnoreCase))
+                LoaderSelector.SelectedItem = item;
+        LoaderSelector.SelectionChanged += (_, _) => SaveSelectedVersion();
 
         StatusText.Text = "Введи свой ник, выбери версию игры и нажми играть.";
         Loaded += MainWindow_Loaded;
@@ -420,14 +424,13 @@ public partial class MainWindow : Window
     private void SaveSelectedVersion()
     {
         var label = (VersionSelector.SelectedItem as ComboBoxItem)?.Content?.ToString();
-        if (string.IsNullOrWhiteSpace(label)) return;
-
-        var parts = label.Split('—', StringSplitOptions.TrimEntries);
-        if (parts.Length > 0)
+        if (!string.IsNullOrWhiteSpace(label))
         {
-            _settings.SelectedMinecraftVersion = parts[0];
-            try { _settingsService.Save(_settings); } catch { }
+            var parts = label.Split('—', StringSplitOptions.TrimEntries);
+            if (parts.Length > 0) _settings.SelectedMinecraftVersion = parts[0];
         }
+        _settings.SelectedMinecraftLoader = (LoaderSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Vanilla — обычная игра";
+        try { _settingsService.Save(_settings); } catch { }
     }
 
     private async void Play_Click(object sender, RoutedEventArgs e)
