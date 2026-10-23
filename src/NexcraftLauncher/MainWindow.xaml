@@ -56,7 +56,7 @@
     </Window.Resources>
     <Grid Margin="16">
         <Grid.ColumnDefinitions><ColumnDefinition Width="200"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-        <Border Grid.ColumnSpan="2" CornerRadius="18" Background="#0C1222" BorderBrush="#34365D" BorderThickness="1"/>
+        <Border Grid.ColumnSpan="2" CornerRadius="18" BorderBrush="#51427D" BorderThickness="1"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#17102D" Offset="0"/><GradientStop Color="#101525" Offset="0.52"/><GradientStop Color="#24113D" Offset="1"/></LinearGradientBrush></Border.Background></Border>
         <Grid Grid.Column="0">
             <Grid.RowDefinitions><RowDefinition Height="84"/><RowDefinition Height="*"/><RowDefinition Height="72"/></Grid.RowDefinitions>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="22,0,0,0">
@@ -159,11 +159,11 @@
                                 <Grid Margin="0,16,0,10">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                     <TextBlock Text="ВЕРСИЯ MINECRAFT" FontSize="12" FontWeight="Bold" Foreground="#E2C27A" VerticalAlignment="Center"/>
-                                    <Border Grid.Column="1" Background="#292318" BorderBrush="#B89552" BorderThickness="1" CornerRadius="6" Padding="7,3">
+                                    <Border Grid.Column="1" Background="#29213D" BorderBrush="#8B5CF6" BorderThickness="1" CornerRadius="6" Padding="7,3">
                                         <TextBlock Text="JAVA EDITION" FontSize="9" FontWeight="Bold" Foreground="#F0D9A0"/>
                                     </Border>
                                 </Grid>
-                                <Border Background="#171522" BorderBrush="#B89552" BorderThickness="1" CornerRadius="9" Padding="3">
+                                <Border Background="#171522" BorderBrush="#8B5CF6" BorderThickness="1" CornerRadius="9" Padding="3">
                                     <ComboBox x:Name="VersionSelector" Height="42" SelectedIndex="0" IsTextSearchEnabled="True" BorderThickness="0" Background="#171522" Foreground="#C084FC" ToolTip="Выбери версию Minecraft Java Edition"/>
                                 </Border>
                                 <Grid Margin="0,14,0,7">
