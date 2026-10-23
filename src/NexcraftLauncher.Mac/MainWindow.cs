@@ -266,6 +266,48 @@ public sealed class MainWindow : Window
         contentRow.Children.Add(profileCard);
 
         var right = new StackPanel { Spacing = 12 };
+        var playerCard = new Border
+        {
+            Background = Brush("#171B2B"), BorderBrush = Brush("#3A315E"), BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(12), Padding = new Thickness(14),
+            Child = new StackPanel
+            {
+                Spacing = 10,
+                Children =
+                {
+                    new TextBlock { Text = "ИГРОВОЙ ПРОФИЛЬ", FontSize = 10, Foreground = Brush("#C084FC") },
+                    new StackPanel
+                    {
+                        Orientation = Orientation.Horizontal, Spacing = 12,
+                        Children =
+                        {
+                            new Grid
+                            {
+                                Width = 54, Height = 54,
+                                Children =
+                                {
+                                    new Border { Background = Brush("#35245B"), CornerRadius = new CornerRadius(8) },
+                                    new Rectangle { Width = 20, Height = 20, Fill = Brush("#E5B18B"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 8, 0, 0) },
+                                    new Rectangle { Width = 24, Height = 8, Fill = Brush("#5A372B"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 5, 0, 0) },
+                                    new Rectangle { Width = 30, Height = 17, Fill = Brush("#6D5BEA"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 0, 5) }
+                                }
+                            },
+                            new StackPanel
+                            {
+                                VerticalAlignment = VerticalAlignment.Center, Spacing = 4,
+                                Children =
+                                {
+                                    new TextBlock { Text = "ИГРОК NEXCRAFT", FontSize = 12, FontWeight = FontWeight.Bold, Foreground = Brush("#F5F7FA") },
+                                    new TextBlock { Text = "Java Edition", FontSize = 11, Foreground = Brush("#AEB8C8") },
+                                    new TextBlock { Text = "Профиль запуска", FontSize = 10, Foreground = Brush("#19F58A") }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        right.Children.Add(playerCard);
         right.Children.Add(new Border
         {
             Background = Brush("#1A2825"), BorderBrush = Brush("#28644A"), BorderThickness = new Thickness(1),
