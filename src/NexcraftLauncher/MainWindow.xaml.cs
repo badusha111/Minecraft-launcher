@@ -57,6 +57,37 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void SignIn_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isInstalling || _account is not null) return;
+        SignInButton.IsEnabled = false;
+        try
+        {
+            var status = new Progress<string>(message => StatusText.Text = message);
+            _account = await _authService.SignInAsync(
+                message => MessageBox.Show(this, message + "\\n\\nПосле подтверждения входа вернись в NEXCRAFT.",
+                    "NEXCRAFT — Вход в Minecraft", MessageBoxButton.OK, MessageBoxImage.Information),
+                status);
+            PlayerNicknameTextBox.Text = _account.Username;
+            _settings.PlayerNickname = _account.Username;
+            _settingsService.Save(_settings);
+            StatusText.Text = $"Вход выполнен: {_account.Username}. Теперь выбери версию и нажми «Играть».";
+            SignInButton.Content = "✓ Вход выполнен";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText.Text = "Вход отменён.";
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Не удалось войти: {ex.Message}";
+        }
+        finally
+        {
+            SignInButton.IsEnabled = _account is null;
+        }
+    }
+
     private async void Play_Click(object sender, RoutedEventArgs e)
     {
         if (_isInstalling) return;
