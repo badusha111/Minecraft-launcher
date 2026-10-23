@@ -5,6 +5,37 @@
         MinWidth="560" MinHeight="480" WindowStartupLocation="CenterOwner"
         ResizeMode="CanResizeWithGrip"
         Background="{StaticResource BgBrush}" Foreground="#F5F7FA">
+    <Window.Resources>
+        <Style TargetType="{x:Type ComboBoxItem}">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="#202631"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="MinHeight" Value="30"/>
+            <Style.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" Value="#354252"/>
+                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#19F58A"/>
+                    <Setter Property="Foreground" Value="#071A12"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="{x:Type ComboBox}">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="#202631"/>
+            <Setter Property="BorderBrush" Value="#586477"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8"/>
+        </Style>
+        <Style TargetType="{x:Type TextBox}">
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="#202631"/>
+            <Setter Property="BorderBrush" Value="#586477"/>
+            <Setter Property="CaretBrush" Value="#FFFFFF"/>
+        </Style>
+    </Window.Resources>
     <Grid Margin="22">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -20,14 +51,14 @@
                 <TextBlock Text="Папка игры" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
                 <DockPanel>
                     <Button x:Name="BrowseButton" DockPanel.Dock="Right" Content="Обзор…" Padding="14,8" Margin="10,0,0,0" Click="BrowseButton_Click"/>
-                    <TextBox x:Name="GameDirectoryBox" Height="36" Padding="9,8" VerticalContentAlignment="Center" Background="#202631" Foreground="#F5F7FA" BorderBrush="#394252"/>
+                    <TextBox x:Name="GameDirectoryBox" Height="36" Padding="9,8" VerticalContentAlignment="Center"/>
                 </DockPanel>
                 <TextBlock Text="Память для Minecraft (МБ)" FontSize="13" FontWeight="SemiBold" Margin="0,20,0,8"/>
                 <Grid>
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                     <StackPanel Margin="0,0,8,0">
-                        <TextBlock Text="Минимум" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,0,0,6"/>
-                        <ComboBox x:Name="MinimumMemoryBox" Height="36" SelectedIndex="1" Background="#202631" Foreground="#F5F7FA">
+                        <TextBlock Text="Минимум" Foreground="#C0C8D5" FontSize="12" Margin="0,0,0,6"/>
+                        <ComboBox x:Name="MinimumMemoryBox" Height="36" SelectedIndex="1">
                             <ComboBoxItem Content="512"/>
                             <ComboBoxItem Content="1024"/>
                             <ComboBoxItem Content="2048"/>
@@ -35,8 +66,8 @@
                         </ComboBox>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="8,0,0,0">
-                        <TextBlock Text="Максимум" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,0,0,6"/>
-                        <ComboBox x:Name="MaximumMemoryBox" Height="36" SelectedIndex="2" Background="#202631" Foreground="#F5F7FA">
+                        <TextBlock Text="Максимум" Foreground="#C0C8D5" FontSize="12" Margin="0,0,0,6"/>
+                        <ComboBox x:Name="MaximumMemoryBox" Height="36" SelectedIndex="2">
                             <ComboBoxItem Content="2048"/>
                             <ComboBoxItem Content="4096"/>
                             <ComboBoxItem Content="6144"/>
@@ -46,11 +77,11 @@
                         </ComboBox>
                     </StackPanel>
                 </Grid>
-                <CheckBox x:Name="CloseLauncherCheckBox" Content="Закрывать лаунчер после запуска игры" Margin="0,20,0,0" Foreground="#D3D8E1"/>
-                <Border Background="#202631" CornerRadius="8" Padding="12" Margin="0,20,0,0">
-                    <TextBlock Text="Эти параметры уже сохраняются в настройках Windows. Подключение их к запуску Minecraft будет добавлено вместе с механизмом запуска игры." TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" FontSize="11"/>
+                <CheckBox x:Name="CloseLauncherCheckBox" Content="Закрывать лаунчер после запуска игры" Margin="0,20,0,0" Foreground="#E0E5ED"/>
+                <Border Background="#202631" BorderBrush="#3B4656" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,20,0,0">
+                    <TextBlock Text="Эти параметры уже сохраняются в настройках Windows. Подключение их к запуску Minecraft будет добавлено вместе с механизмом запуска игры." TextWrapping="Wrap" Foreground="#D0D7E2" FontSize="12"/>
                 </Border>
-                <TextBlock x:Name="ErrorText" Foreground="#FF9D45" TextWrapping="Wrap" Margin="0,12,0,0" FontSize="11"/>
+                <TextBlock x:Name="ErrorText" Foreground="#FFB36B" TextWrapping="Wrap" Margin="0,12,0,0" FontSize="12"/>
             </StackPanel>
         </ScrollViewer>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
