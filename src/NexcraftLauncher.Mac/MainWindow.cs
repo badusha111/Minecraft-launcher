@@ -28,7 +28,7 @@ public sealed class MainWindow : Window
     private readonly StackPanel _mainContent = new() { Spacing = 12 };
     private readonly TextBlock _status = new() { Text = "NEXCRAFT для macOS · готов к настройке", Foreground = Brush("#B8C1D0"), TextWrapping = TextWrapping.Wrap };
     private readonly ComboBox _versions = new() { MinWidth = 210, ItemsSource = new[] { "1.21.1", "1.20.1", "1.16.5" }, SelectedItem = "1.21.1" };
-    private readonly ComboBox _loaders = new() { MinWidth = 210, ItemsSource = new[] { "Vanilla", "Fabric — лёгкий загрузчик модов", "Forge — загрузчик модов" }, SelectedItem = "Vanilla" };
+    private readonly ComboBox _loaders = new() { MinWidth = 210, ItemsSource = new[] { "Vanilla — обычная игра", "Fabric — лёгкий загрузчик модов", "Forge — загрузчик модов" }, SelectedItem = "Vanilla — обычная игра" };
     private readonly TextBox _nickname = new() { Watermark = "Ник игрока", MaxLength = 16 };
     private readonly Button _play = new() { Content = "Играть", HorizontalContentAlignment = HorizontalAlignment.Center };
     private readonly Button _login = new() { Content = "Войти через Microsoft", HorizontalContentAlignment = HorizontalAlignment.Center };
@@ -281,31 +281,31 @@ public sealed class MainWindow : Window
         _versions.Height = 42;
         _versions.Background = Brush("#171522");
         _versions.Foreground = Brush("#C084FC");
-        _versions.BorderBrush = Brush("#B89552");
+        _versions.BorderBrush = Brush("#8B5CF6");
         _versions.Padding = new Thickness(10, 7);
         _versions.FontSize = 13;
         _versions.FontWeight = FontWeight.SemiBold;
         profile.Children.Add(new Border
         {
             Background = Brush("#171522"),
-            BorderBrush = Brush("#B89552"),
+            BorderBrush = Brush("#8B5CF6"),
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(9),
             Padding = new Thickness(3),
             Child = _versions
         });
-        profile.Children.Add(new TextBlock { Text = "ЗАГРУЗЧИК", FontSize = 11, FontWeight = FontWeight.Bold, Foreground = Brush("#E2C27A"), Margin = new Thickness(0, 12, 0, 4) });
+        profile.Children.Add(new TextBlock { Text = "ЗАГРУЗЧИК", FontSize = 11, FontWeight = FontWeight.Bold, Foreground = Brush("#C084FC"), Margin = new Thickness(0, 12, 0, 4) });
         _loaders.Height = 44;
         _loaders.Background = Brush("#171522");
         _loaders.Foreground = Brush("#C084FC");
-        _loaders.BorderBrush = Brush("#B89552");
+        _loaders.BorderBrush = Brush("#8B5CF6");
         _loaders.Padding = new Thickness(10, 7);
         _loaders.FontSize = 13;
         _loaders.FontWeight = FontWeight.SemiBold;
         var loaderShell = new Border
         {
             Background = Brush("#171522"),
-            BorderBrush = Brush("#B89552"),
+            BorderBrush = Brush("#8B5CF6"),
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(9),
             Padding = new Thickness(3),
