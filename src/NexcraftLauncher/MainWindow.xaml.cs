@@ -57,7 +57,7 @@ public partial class MainWindow : Window
         MicrosoftModeButton.Foreground = System.Windows.Media.Brushes.White;
         ModeDescriptionText.Text = "Локальный ник без Microsoft. Свободное скачивание файлов и запуск игры в оффлайн-режиме.";
         SignInButton.Visibility = Visibility.Collapsed;
-        PlayButton.Content = "▶  ИГРАТЬ БЕЗ ЛИЦЕНЗИИ"; // Изменили текст для ясности
+        PlayButton.Content = "▶  ИГРАТЬ БЕЗ ЛИЦЕНЗИИ";
         StatusText.Text = "Введи локальный ник, выбери версию и нажми играть.";
     }
 
@@ -82,6 +82,7 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(label))
             return;
 
+        // Исправлено: добавлен индекс, чтобы сохранялась строка, а не массив строк
         _settings.SelectedMinecraftVersion = label.Split('—', StringSplitOptions.TrimEntries)[0];
         try
         {
@@ -129,7 +130,6 @@ public partial class MainWindow : Window
         if (_isInstalling) return;
         var nickname = PlayerNicknameTextBox.Text.Trim();
         
-        // Регулярка для проверки ника (3-16 символов, буквы, цифры, подчёркивание)
         if (!System.Text.RegularExpressions.Regex.IsMatch(nickname, @"^[A-Za-z0-9_]{3,16}$"))
         {
             StatusText.Text = "Введи ник длиной 3–16 символов: латинские буквы, цифры или подчёркивание.";
@@ -149,6 +149,8 @@ public partial class MainWindow : Window
         }
 
         SaveSelectedVersion();
+        
+        // Исправлено: добавлен индекс, чтобы правильно получать строку версии
         var version = (VersionSelector.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Split('—', StringSplitOptions.TrimEntries)[0];
         if (string.IsNullOrWhiteSpace(version))
         {
@@ -156,13 +158,11 @@ public partial class MainWindow : Window
             return;
         }
 
-        // --- ЛОГИКА ЗАПУСКА ЧЕРЕЗ CMLIB.CORE ---
         _isInstalling = true;
         PlayButton.IsEnabled = false;
 
         try
         {
-            // Берем путь к папке игры из ваших настроек приложения
             string gameDir = string.IsNullOrWhiteSpace(_settings.GameDirectory) 
                 ? MinecraftPath.GetOSDefaultPath() 
                 : _settings.GameDirectory;
@@ -170,14 +170,12 @@ public partial class MainWindow : Window
             var path = new MinecraftPath(gameDir);
             var launcher = new MinecraftLauncher(path);
 
-            // Привязываем статус загрузки к вашему UI-элементу StatusText
+            // Выводим прогресс проверки/загрузки в статус-бар лаунчера
             launcher.FileProgressChanged += (pSender, pArgs) =>
             {
                 Dispatcher.Invoke(() =>
                 {
                     StatusText.Text = $"Проверка файлов: {pArgs.ProgressedTasks}/{pArgs.TotalTasks} ({pArgs.Percent}%)";
-                    // Если у вас на форме есть ProgressBar (например, с именем LaunchProgressBar), раскомментируйте строку ниже:
-                    // LaunchProgressBar.Value = pArgs.Percent;
                 });
             };
 
@@ -185,25 +183,22 @@ public partial class MainWindow : Window
 
             if (_offlineMode)
             {
-                StatusText.Text = "Подготовка пиратской оффлайн-сессии...";
-                // Создаем оффлайн-сессию БЕЗ ЛИЦЕНЗИИ
+                StatusText.Text = "Создание автономного профиля...";
                 session = MinecraftSession.CreateOfflineSession(nickname);
             }
             else
             {
                 if (_account is null)
                 {
-                    StatusText.Text = "Сначала выполните вход через Microsoft или переключитесь в Офлайн-режим.";
+                    StatusText.Text = "Сначала войдите через Microsoft или переключитесь в Офлайн-режим.";
                     _isInstalling = false;
                     PlayButton.IsEnabled = true;
                     return;
                 }
-                StatusText.Text = "Авторизация лицензионной сессии...";
-                // Для онлайн режима передаем ваш существующий токен из _account
+                StatusText.Text = "Авторизация официальной сессии...";
                 session = new MinecraftSession(_account.Username, _account.AccessToken, _account.Uuid, "msa");
             }
 
-            // Настраиваем параметры памяти из вашей модели LauncherSettings
             var launchOption = new MLaunchOption
             {
                 MaximumRamMb = _settings.MaxMemory > 0 ? _settings.MaxMemory : 4096,
@@ -211,15 +206,13 @@ public partial class MainWindow : Window
                 Session = session
             };
 
-            StatusText.Text = "Загрузка манифеста и проверка необходимых файлов...";
+            StatusText.Text = "Анализ необходимых файлов и загрузка компонентов...";
             
-            // Асинхронно скачиваем/проверяем файлы игры и генерируем правильный процесс
             Process process = await launcher.InstallAndBuildProcessAsync(version, launchOption);
             
-            StatusText.Text = "Запуск Minecraft...";
+            StatusText.Text = "Запуск игрового клиента...";
             process.Start();
 
-            // Реализуем вашу настройку "Закрывать лаунчер при запуске"
             if (_settings.CloseOnLaunch)
             {
                 Application.Current.Shutdown();
@@ -231,8 +224,12 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Ошибка при запуске: {ex.Message}";
+            StatusText.Text = $"Ошибка запуска: {ex.Message}";
         }
         finally
         {
             _isInstalling = false;
+            PlayButton.IsEnabled = true;
+        }
+    }
+}
