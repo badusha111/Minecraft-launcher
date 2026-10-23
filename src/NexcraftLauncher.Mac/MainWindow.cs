@@ -62,7 +62,7 @@ public sealed class MainWindow : Window
         var header = new Grid { Margin = new Thickness(26, 0, 26, 0), ColumnDefinitions = new ColumnDefinitions("*,Auto") };
         header.Children.Add(new TextBlock { Text = "ЦЕНТР ИГРЫ", FontSize = 10, Foreground = Brush("#AEB8C8"), VerticalAlignment = VerticalAlignment.Center });
         var ready = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
-        ready.Children.Add(new Ellipse { Width = 8, Height = 8, Fill = Brush("#19F58A"), VerticalAlignment = VerticalAlignment.Center });
+        ready.Children.Add(new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Background = Brush("#19F58A"), VerticalAlignment = VerticalAlignment.Center });
         ready.Children.Add(new TextBlock { Text = "Лаунчер готов", FontSize = 12, Foreground = Brush("#E0E5ED"), VerticalAlignment = VerticalAlignment.Center });
         Grid.SetColumn(ready, 1);
         header.Children.Add(ready);
