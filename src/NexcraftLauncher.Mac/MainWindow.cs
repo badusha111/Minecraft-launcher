@@ -420,6 +420,107 @@ public sealed class MainWindow : Window
         return 8;
     }
 
+    private static async Task<string> EnsureJavaExecutableAsync(string gameVersion, string gameDir)
+    {
+        try { return FindJavaExecutable(gameVersion, gameDir); }
+        catch (InvalidOperationException) { }
+
+        int requiredMajor = RequiredJavaMajor(gameVersion);
+        string os = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsMacOS() ? "mac" : "linux";
+        string arch = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture switch
+        {
+            System.Runtime.InteropServices.Architecture.X64 => "x64",
+            System.Runtime.InteropServices.Architecture.Arm64 => "aarch64",
+            System.Runtime.InteropServices.Architecture.X86 => "x86",
+            _ => throw new PlatformNotSupportedException("Эта архитектура процессора пока не поддерживается автоматической установкой Java.")
+        };
+        string javaName = OperatingSystem.IsWindows() ? "java.exe" : "java";
+        string runtimeRoot = Path.Combine(gameDir, "runtime", "nexcraft-java", $"{requiredMajor}-{os}-{arch}");
+        string? installedJava = Directory.Exists(runtimeRoot)
+            ? Directory.EnumerateFiles(runtimeRoot, javaName, SearchOption.AllDirectories)
+                .FirstOrDefault(file => Path.GetFileName(Path.GetDirectoryName(file) ?? "").Equals("bin", StringComparison.OrdinalIgnoreCase))
+            : null;
+        if (!string.IsNullOrWhiteSpace(installedJava) && await IsJavaMajorAsync(installedJava, requiredMajor))
+            return installedJava;
+
+        Directory.CreateDirectory(runtimeRoot);
+        string archivePath = Path.Combine(Path.GetTempPath(), $"nexcraft-java-{requiredMajor}-{Guid.NewGuid():N}" + (OperatingSystem.IsWindows() ? ".zip" : ".tar.gz"));
+        string apiUrl = $"https://api.adoptium.net/v3/binary/latest/{requiredMajor}/ga/{os}/{arch}/jdk/hotspot/normal/eclipse?project=jdk";
+
+        try
+        {
+            using var client = new HttpClient { Timeout = TimeSpan.FromMinutes(15) };
+            using var response = await client.GetAsync(apiUrl, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+            await using (var output = File.Create(archivePath))
+                await response.Content.CopyToAsync(output);
+
+            if (OperatingSystem.IsWindows())
+            {
+                System.IO.Compression.ZipFile.ExtractToDirectory(archivePath, runtimeRoot, overwriteFiles: true);
+            }
+            else
+            {
+                var tar = new ProcessStartInfo("tar")
+                {
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+                tar.ArgumentList.Add("-xzf");
+                tar.ArgumentList.Add(archivePath);
+                tar.ArgumentList.Add("-C");
+                tar.ArgumentList.Add(runtimeRoot);
+                using var extract = Process.Start(tar) ?? throw new InvalidOperationException("Не удалось запустить распаковщик Java.");
+                var stdout = extract.StandardOutput.ReadToEndAsync();
+                var stderr = extract.StandardError.ReadToEndAsync();
+                await extract.WaitForExitAsync();
+                if (extract.ExitCode != 0)
+                    throw new InvalidOperationException($"Не удалось распаковать Java: {await stderr}");
+            }
+
+            installedJava = Directory.EnumerateFiles(runtimeRoot, javaName, SearchOption.AllDirectories)
+                .FirstOrDefault(file => Path.GetFileName(Path.GetDirectoryName(file) ?? "").Equals("bin", StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrWhiteSpace(installedJava) || !await IsJavaMajorAsync(installedJava, requiredMajor))
+                throw new InvalidOperationException($"Java {requiredMajor} скачана, но не прошла проверку запуска.");
+
+            return installedJava;
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new InvalidOperationException($"Не удалось скачать Java {requiredMajor} с Eclipse Adoptium. Проверь интернет и повтори попытку. {ex.Message}", ex);
+        }
+        finally
+        {
+            try { if (File.Exists(archivePath)) File.Delete(archivePath); } catch { }
+        }
+    }
+
+    private static async Task<bool> IsJavaMajorAsync(string javaPath, int expectedMajor)
+    {
+        try
+        {
+            var start = new ProcessStartInfo(javaPath, "-version")
+            {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+            using var process = Process.Start(start);
+            if (process is null) return false;
+            var stdout = process.StandardOutput.ReadToEndAsync();
+            var stderr = process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+            var output = await stdout + await stderr;
+            var match = System.Text.RegularExpressions.Regex.Match(output, @"version\s+""(?:1\.)?(\d+)""");
+            return process.ExitCode == 0 && match.Success &&
+                int.TryParse(match.Groups[1].Value, out var actualMajor) && actualMajor == expectedMajor;
+        }
+        catch { return false; }
+    }
+
     private static string FindJavaExecutable(string gameVersion, string gameDir)
     {
         int requiredMajor = RequiredJavaMajor(gameVersion);
@@ -528,7 +629,7 @@ public sealed class MainWindow : Window
             var installerPath = Path.Combine(Path.GetTempPath(), $"forge-{fullVersion}-installer.jar");
             var installerUrl = $"https://maven.minecraftforge.net/net/minecraftforge/forge/{fullVersion}/forge-{fullVersion}-installer.jar";
             await File.WriteAllBytesAsync(installerPath, await http.GetByteArrayAsync(installerUrl));
-            var start = new ProcessStartInfo(FindJavaExecutable(gameVersion, path.BasePath)) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            var start = new ProcessStartInfo(await EnsureJavaExecutableAsync(gameVersion, path.BasePath)) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
             start.ArgumentList.Add("-jar");
             start.ArgumentList.Add(installerPath);
             start.ArgumentList.Add("--installClient");
