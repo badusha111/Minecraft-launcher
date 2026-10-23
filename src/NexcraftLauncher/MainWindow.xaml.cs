@@ -505,6 +505,8 @@ public partial class MainWindow : Window
             StatusText.Text = "Анализ файлов и загрузка компонентов...";
             
             string selectedLoader = (LoaderSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "Vanilla";
+            StatusText.Text = $"Подготавливаем базовую версию Minecraft {version}...";
+            await launcher.InstallAsync(version);
             version = await PrepareLoaderVersionAsync(selectedLoader, version, gameDir, path);
             StatusText.Text = $"Подготавливаем {selectedLoader.Split('—')[0].Trim()} для Minecraft {version}...";
             await launcher.InstallAsync(version);
