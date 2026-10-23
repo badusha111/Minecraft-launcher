@@ -1,16 +1,7 @@
-using System;
-using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Diagnostics;
 using NexcraftLauncher.Models;
 using NexcraftLauncher.Services;
-
-// Подключаем движок лаунчера
-using CmlLib.Core;
-using CmlLib.Core.Auth;
-using CmlLib.Core.ProcessBuilder;
 
 namespace NexcraftLauncher;
 
@@ -55,10 +46,10 @@ public partial class MainWindow : Window
         OfflineModeButton.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#C8B6FF"));
         MicrosoftModeButton.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#272D3A"));
         MicrosoftModeButton.Foreground = System.Windows.Media.Brushes.White;
-        ModeDescriptionText.Text = "Локальный ник без Microsoft. Свободное скачивание файлов и запуск игры в оффлайн-режиме.";
+        ModeDescriptionText.Text = "Локальный ник без Microsoft. Этот профиль не авторизует оригинальную Minecraft; офлайн-запуск будет доступен для совместимой бесплатной игры.";
         SignInButton.Visibility = Visibility.Collapsed;
-        PlayButton.Content = "▶  ИГРАТЬ БЕЗ ЛИЦЕНЗИИ";
-        StatusText.Text = "Введи локальный ник, выбери версию и нажми играть.";
+        PlayButton.Content = "✓  СОХРАНИТЬ ПРОФИЛЬ";
+        StatusText.Text = "Введи локальный ник и сохрани офлайн-профиль.";
     }
 
     private void RestoreSelectedVersion()
@@ -82,7 +73,6 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(label))
             return;
 
-        // Исправлено: добавлен индекс, чтобы сохранялась строка, а не массив строк
         _settings.SelectedMinecraftVersion = label.Split('—', StringSplitOptions.TrimEntries)[0];
         try
         {
@@ -129,7 +119,6 @@ public partial class MainWindow : Window
     {
         if (_isInstalling) return;
         var nickname = PlayerNicknameTextBox.Text.Trim();
-        
         if (!System.Text.RegularExpressions.Regex.IsMatch(nickname, @"^[A-Za-z0-9_]{3,16}$"))
         {
             StatusText.Text = "Введи ник длиной 3–16 символов: латинские буквы, цифры или подчёркивание.";
@@ -149,8 +138,11 @@ public partial class MainWindow : Window
         }
 
         SaveSelectedVersion();
-        
-        // Исправлено: добавлен индекс, чтобы правильно получать строку версии
+        if (_offlineMode)
+        {
+            StatusText.Text = $"Офлайн-профиль «{nickname}» сохранён. Вход в Microsoft не требуется. Оригинальная Minecraft в этом режиме не запускается; следующий шаг — подключение бесплатной игры, поддерживающей локальные профили.";
+            return;
+        }
         var version = (VersionSelector.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Split('—', StringSplitOptions.TrimEntries)[0];
         if (string.IsNullOrWhiteSpace(version))
         {
@@ -160,76 +152,82 @@ public partial class MainWindow : Window
 
         _isInstalling = true;
         PlayButton.IsEnabled = false;
-
+        DownloadProgress.Visibility = Visibility.Visible;
+        DownloadProgress.Value = 0;
         try
         {
-            string gameDir = string.IsNullOrWhiteSpace(_settings.GameDirectory) 
-                ? MinecraftPath.GetOSDefaultPath() 
-                : _settings.GameDirectory;
-
-            var path = new MinecraftPath(gameDir);
-            var launcher = new MinecraftLauncher(path);
-
-            // Выводим прогресс проверки/загрузки в статус-бар лаунчера
-            launcher.FileProgressChanged += (pSender, pArgs) =>
+            var status = new Progress<string>(message => StatusText.Text = message);
+            if (_account is null)
             {
-                Dispatcher.Invoke(() =>
-                {
-                    StatusText.Text = $"Проверка файлов: {pArgs.ProgressedTasks}/{pArgs.TotalTasks} ({pArgs.Percent}%)";
-                });
-            };
-
-            MinecraftSession session;
-
-            if (_offlineMode)
-            {
-                StatusText.Text = "Создание автономного профиля...";
-                session = MinecraftSession.CreateOfflineSession(nickname);
-            }
-            else
-            {
-                if (_account is null)
-                {
-                    StatusText.Text = "Сначала войдите через Microsoft или переключитесь в Офлайн-режим.";
-                    _isInstalling = false;
-                    PlayButton.IsEnabled = true;
-                    return;
-                }
-                StatusText.Text = "Авторизация официальной сессии...";
-                session = new MinecraftSession(_account.Username, _account.AccessToken, _account.Uuid, "msa");
+                StatusText.Text = "Нужен официальный вход Microsoft…";
+                _account = await _authService.SignInAsync(
+                    message => MessageBox.Show(this, message + "\n\nПосле подтверждения входа вернись в NEXCRAFT.",
+                        "NEXCRAFT — Вход в Minecraft", MessageBoxButton.OK, MessageBoxImage.Information),
+                    status);
+                PlayerNicknameTextBox.Text = _account.Username;
+                _settings.PlayerNickname = _account.Username;
+                _settingsService.Save(_settings);
             }
 
-            var launchOption = new MLaunchOption
-            {
-                MaximumRamMb = _settings.MaxMemory > 0 ? _settings.MaxMemory : 4096,
-                MinimumRamMb = _settings.MinMemory > 0 ? _settings.MinMemory : 1024,
-                Session = session
-            };
-
-            StatusText.Text = "Анализ необходимых файлов и загрузка компонентов...";
-            
-            Process process = await launcher.InstallAndBuildProcessAsync(version, launchOption);
-            
-            StatusText.Text = "Запуск игрового клиента...";
-            process.Start();
-
-            if (_settings.CloseOnLaunch)
-            {
-                Application.Current.Shutdown();
-            }
-            else
-            {
-                StatusText.Text = "Игра успешно запущена!";
-            }
+            StatusText.Text = "Подготавливаю установку…";
+            var progress = new Progress<double>(value => DownloadProgress.Value = Math.Clamp(value * 100, 0, 100));
+            await _installationService.InstallAsync(version, _settings.GameDirectory, status, progress);
+            var javaMajor = version.StartsWith("1.21", StringComparison.Ordinal) ? 21
+                : version.StartsWith("1.20", StringComparison.Ordinal) ? 17
+                : version.StartsWith("1.16", StringComparison.Ordinal) ? 8
+                : throw new InvalidOperationException("Для этой версии Minecraft пока не настроен выбор Java.");
+            var java = await _javaRuntimeService.EnsureRuntimeAsync(javaMajor, _settings.GameDirectory, status);
+            await _launchService.LaunchAsync(version, _settings.GameDirectory, java.ExecutablePath,
+                new MinecraftSession(_account!.Username, _account.Uuid, _account.AccessToken),
+                _settings.MemoryMinimumMb, _settings.MemoryMaximumMb, status);
+            StatusText.Text = $"Minecraft {version} запущена под аккаунтом {_account.Username}.";
+            if (_settings.CloseLauncherOnGameStart)
+                Close();
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText.Text = "Установка отменена.";
+        }
+        catch (HttpRequestException ex)
+        {
+            StatusText.Text = $"Ошибка сети при загрузке: {ex.Message}";
+        }
+        catch (InvalidDataException ex)
+        {
+            StatusText.Text = $"Проверка файлов не пройдена: {ex.Message}";
+        }
+        catch (IOException ex)
+        {
+            StatusText.Text = $"Не удалось записать файлы игры: {ex.Message}";
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            StatusText.Text = $"Нет доступа к папке игры: {ex.Message}";
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Ошибка запуска: {ex.Message}";
+            StatusText.Text = $"Ошибка установки: {ex.Message}";
         }
         finally
         {
             _isInstalling = false;
             PlayButton.IsEnabled = true;
+        }
+    }
+
+    private void Mods_Click(object sender, RoutedEventArgs e) =>
+        MessageBox.Show("Раздел модов появится позже. Он будет устанавливать и обновлять проверенную серверную сборку.", "NEXCRAFT — Моды и сборки", MessageBoxButton.OK, MessageBoxImage.Information);
+
+    private void Library_Click(object sender, RoutedEventArgs e) =>
+        MessageBox.Show("Здесь появятся установленные версии Minecraft и сборки.", "NEXCRAFT — Библиотека", MessageBoxButton.OK, MessageBoxImage.Information);
+
+    private void Settings_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new SettingsWindow { Owner = this };
+        if (dialog.ShowDialog() == true)
+        {
+            _settings = _settingsService.Load();
+            StatusText.Text = "Настройки сохранены.";
         }
     }
 }
