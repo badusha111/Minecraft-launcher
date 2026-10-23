@@ -6,7 +6,6 @@ using System.Windows.Controls;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
-using Microsoft.Win32;
 using NexcraftLauncher.Models;
 using NexcraftLauncher.Services;
 
@@ -579,14 +578,26 @@ public partial class MainWindow : Window
         if (loaderLabel.StartsWith("Fabric", StringComparison.OrdinalIgnoreCase))
         {
             using var http = new HttpClient();
-            var profileUrl = $"https://meta.fabricmc.net/v2/versions/loader/{Uri.EscapeDataString(gameVersion)}/profile/json";
-            using var response = await http.GetAsync(profileUrl);
-            response.EnsureSuccessStatusCode();
-            var json = await response.Content.ReadAsStringAsync();
+            var loaderListUrl = $"https://meta.fabricmc.net/v2/versions/loader/{Uri.EscapeDataString(gameVersion)}";
+            using var listResponse = await http.GetAsync(loaderListUrl);
+            listResponse.EnsureSuccessStatusCode();
+            using var loaderList = JsonDocument.Parse(await listResponse.Content.ReadAsStringAsync());
+            if (loaderList.RootElement.ValueKind != JsonValueKind.Array || loaderList.RootElement.GetArrayLength() == 0)
+                throw new InvalidOperationException($"Для Minecraft {gameVersion} не найден совместимый Fabric.");
+
+            var loaderVersion = loaderList.RootElement[0].GetProperty("loader").GetProperty("version").GetString();
+            if (string.IsNullOrWhiteSpace(loaderVersion))
+                throw new InvalidDataException("Fabric не вернул номер версии загрузчика.");
+
+            var profileUrl = $"https://meta.fabricmc.net/v2/versions/loader/{Uri.EscapeDataString(gameVersion)}/{Uri.EscapeDataString(loaderVersion)}/profile/json";
+            using var profileResponse = await http.GetAsync(profileUrl);
+            profileResponse.EnsureSuccessStatusCode();
+            var json = await profileResponse.Content.ReadAsStringAsync();
             using var document = JsonDocument.Parse(json);
             var profileName = document.RootElement.GetProperty("id").GetString();
             if (string.IsNullOrWhiteSpace(profileName))
                 throw new InvalidDataException("Fabric не вернул имя профиля.");
+
             var jsonPath = path.GetVersionJsonPath(profileName);
             Directory.CreateDirectory(Path.GetDirectoryName(jsonPath)!);
             await File.WriteAllTextAsync(jsonPath, json);
@@ -628,23 +639,6 @@ public partial class MainWindow : Window
                     .OrderByDescending(Directory.GetLastWriteTimeUtc).FirstOrDefault()
                 : null;
             if (installed is null) throw new DirectoryNotFoundException($"Forge сообщил об успешной установке, но профиль не найден в {versionsDir}. Вывод установщика: {installerOutput}");
-            return Path.GetFileName(installed);
-        }
-
-        if (loaderLabel.StartsWith("OptiFine", StringComparison.OrdinalIgnoreCase))
-        {
-            var dialog = new OpenFileDialog { Title = "Выбери установщик OptiFine для выбранной версии Minecraft", Filter = "Java installer (*.jar)|*.jar", CheckFileExists = true };
-            if (dialog.ShowDialog(this) != true) throw new OperationCanceledException("Установка OptiFine отменена.");
-            var start = new ProcessStartInfo(FindJavaExecutable(gameVersion, gameDir)) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
-            start.ArgumentList.Add("-jar"); start.ArgumentList.Add(dialog.FileName); start.ArgumentList.Add("-install");
-            using var installer = Process.Start(start) ?? throw new InvalidOperationException("Не удалось запустить Java для OptiFine. Установи подходящую Java.");
-            var stdoutTask = installer.StandardOutput.ReadToEndAsync();
-            var stderrTask = installer.StandardError.ReadToEndAsync();
-            await installer.WaitForExitAsync();
-            if (installer.ExitCode != 0) throw new InvalidOperationException($"Установщик OptiFine завершился с кодом {installer.ExitCode}: {(await stdoutTask)}{Environment.NewLine}{(await stderrTask)}");
-            var versionsDir = Path.Combine(gameDir, "versions");
-            var installed = Directory.Exists(versionsDir) ? Directory.GetDirectories(versionsDir, gameVersion + "-OptiFine*").OrderByDescending(Directory.GetLastWriteTimeUtc).FirstOrDefault() : null;
-            if (installed is null) throw new DirectoryNotFoundException("Профиль OptiFine не найден. Проверь, что установщик подходит к выбранной версии.");
             return Path.GetFileName(installed);
         }
 
