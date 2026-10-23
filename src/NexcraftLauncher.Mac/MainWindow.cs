@@ -88,13 +88,47 @@ public sealed class MainWindow : Window
 
     private Control BuildSidebar()
     {
-        var menu = new StackPanel { Spacing = 8, Margin = new Thickness(16, 24) };
-        menu.Children.Add(new TextBlock { Text = "NEXCRAFT", FontSize = 23, FontWeight = FontWeight.Bold, Foreground = Brush("#B99AFF"), Margin = new Thickness(8, 0, 0, 22) });
+        var layout = new Grid { RowDefinitions = new RowDefinitions("90,*,72") };
+        var brand = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(22, 0, 0, 0),
+            Spacing = 10
+        };
+        brand.Children.Add(new Border
+        {
+            Width = 34, Height = 34, CornerRadius = new CornerRadius(9),
+            Background = Brush("#173C31"), BorderBrush = Brush("#19F58A"),
+            BorderThickness = new Thickness(1),
+            Child = new TextBlock { Text = "N", FontSize = 22, FontWeight = FontWeight.Black, Foreground = Brush("#19F58A"), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center }
+        });
+        brand.Children.Add(new StackPanel
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+            Spacing = 2,
+            Children =
+            {
+                new TextBlock { Text = "NEXCRAFT", FontSize = 17, FontWeight = FontWeight.Bold },
+                new TextBlock { Text = "MINECRAFT LAUNCHER", FontSize = 8, Foreground = Brush("#AEB8C8") }
+            }
+        });
+        layout.Children.Add(brand);
+
+        var menu = new StackPanel { Spacing = 3, Margin = new Thickness(12, 12, 12, 0) };
         menu.Children.Add(NavButton("⌂   Главная", ShowHome));
-        menu.Children.Add(NavButton("✦   Моды и сборки", ShowMods));
-        menu.Children.Add(NavButton("▦   Библиотека", ShowLibrary));
+        menu.Children.Add(NavButton("◇   Моды и сборки", ShowMods));
+        menu.Children.Add(NavButton("▣   Библиотека", ShowLibrary));
         menu.Children.Add(NavButton("⚙   Настройки", ShowSettings));
-        return new Border { Background = Brush("#191E27"), Child = menu };
+        Grid.SetRow(menu, 1);
+        layout.Children.Add(menu);
+
+        var footer = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(22, 0) , Spacing = 5 };
+        footer.Children.Add(new TextBlock { Text = "NEXCRAFT PREVIEW", FontSize = 10, Foreground = Brush("#AEB8C8") });
+        footer.Children.Add(new TextBlock { Text = "РАННЯЯ ВЕРСИЯ", FontSize = 9, Foreground = Brush("#FF9D45") });
+        Grid.SetRow(footer, 2);
+        layout.Children.Add(footer);
+        return new Border { Background = Brush("#151922"), Child = layout };
     }
 
     private Button NavButton(string title, Action action)
@@ -122,26 +156,121 @@ public sealed class MainWindow : Window
 
     private void ShowHome()
     {
-        PreparePage("Главная", "Выбери версию, введи ник и запускай игру.");
-        _mainContent.Children.Add(new TextBlock { Text = "Имя игрока", Foreground = Brush("#B8C1D0") });
-        _mainContent.Children.Add(_nickname);
-        _mainContent.Children.Add(new TextBlock { Text = "Версия Minecraft", Foreground = Brush("#B8C1D0"), Margin = new Thickness(0, 8, 0, 0) });
-        _mainContent.Children.Add(_versions);
+        PreparePage("", "");
+        _mainContent.Spacing = 0;
+
+        var heroGrid = new Grid();
+        heroGrid.Background = new LinearGradientBrush
+        {
+            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
+            GradientStops = new GradientStops
+            {
+                new GradientStop(Color.Parse("#27384A"), 0),
+                new GradientStop(Color.Parse("#20243B"), 0.48),
+                new GradientStop(Color.Parse("#172C28"), 1)
+            }
+        };
+        var hero = new Border
+        {
+            Height = 320,
+            CornerRadius = new CornerRadius(16),
+            ClipToBounds = true,
+            BorderBrush = Brush("#5B4B36"),
+            BorderThickness = new Thickness(1),
+            Child = heroGrid
+        };
+        heroGrid.Children.Add(new Border { Width = 8, Background = Brush("#FF9D45"), HorizontalAlignment = HorizontalAlignment.Left });
+        var heroText = new StackPanel { VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(34, 0, 0, 0), Spacing = 4 };
+        heroText.Children.Add(new Border
+        {
+            Background = Brush("#1B2029"), CornerRadius = new CornerRadius(4),
+            Padding = new Thickness(10, 5), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 11),
+            Child = new TextBlock { Text = "НОВОЕ ПРИКЛЮЧЕНИЕ", FontSize = 10, FontWeight = FontWeight.Bold, Foreground = Brush("#19F58A") }
+        });
+        heroText.Children.Add(new TextBlock { Text = "ТВОЙ МИР.", FontSize = 39, FontWeight = FontWeight.Black, Foreground = Brushes.White });
+        heroText.Children.Add(new TextBlock { Text = "ТВОИ ПРАВИЛА.", FontSize = 39, FontWeight = FontWeight.Black, Foreground = Brush("#19F58A") });
+        heroText.Children.Add(new TextBlock { Text = "Подготовься к игре — остальное впереди.", FontSize = 14, Foreground = Brush("#E2E7EF"), Margin = new Thickness(0, 10, 0, 0) });
+        heroGrid.Children.Add(heroText);
+        heroGrid.Children.Add(new Border
+        {
+            VerticalAlignment = VerticalAlignment.Top, HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(0, 20, 20, 0), BorderBrush = Brush("#687588"), BorderThickness = new Thickness(1),
+            Background = Brush("#70202731"), CornerRadius = new CornerRadius(8), Padding = new Thickness(12, 8),
+            Child = new TextBlock { Text = "JAVA EDITION", FontSize = 10, FontWeight = FontWeight.Bold, Foreground = Brushes.White }
+        });
+        heroGrid.Children.Add(new TextBlock { Text = "NEXCRAFT  /  SEASON 01", VerticalAlignment = VerticalAlignment.Bottom, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 0, 22, 18), FontSize = 10, Foreground = Brush("#D2D9E4") });
+        _mainContent.Children.Add(hero);
+
+        var contentRow = new Grid { ColumnDefinitions = new ColumnDefinitions("*,240"), Margin = new Thickness(0, 20, 0, 0) };
+        var profile = new StackPanel { Spacing = 8 };
+        profile.Children.Add(new TextBlock { Text = "ТВОЙ ПРОФИЛЬ", FontSize = 11, Foreground = Brush("#B99AFF") });
+        profile.Children.Add(new TextBlock { Text = "Запуск Minecraft", FontSize = 17, FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 0, 0, 4) });
+        profile.Children.Add(new TextBlock { Text = "Твой игровой ник", FontSize = 12, Foreground = Brush("#D0D7E2") });
+        _nickname.Height = 40;
+        _nickname.Padding = new Thickness(10, 8);
+        _nickname.Background = Brush("#202631");
+        _nickname.Foreground = Brushes.White;
+        _nickname.BorderBrush = Brush("#586477");
+        _nickname.BorderThickness = new Thickness(1);
+        profile.Children.Add(_nickname);
+        var versionLabel = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 8, 0, 0) };
+        versionLabel.Children.Add(new TextBlock { Text = "ВЕРСИЯ MINECRAFT", FontSize = 12, FontWeight = FontWeight.Bold, Foreground = Brush("#B99AFF"), VerticalAlignment = VerticalAlignment.Center });
+        Grid.SetColumn(new Border { Background = Brush("#29213D"), BorderBrush = Brush("#6B4DFF"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Thickness(7, 3), Child = new TextBlock { Text = "JAVA", FontSize = 9, FontWeight = FontWeight.Bold, Foreground = Brush("#D9CCFF") } }, 1);
+        var javaBadge = versionLabel.Children[0] as Control;
+        var badge = new Border { Background = Brush("#29213D"), BorderBrush = Brush("#6B4DFF"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Thickness(7, 3), Child = new TextBlock { Text = "JAVA", FontSize = 9, FontWeight = FontWeight.Bold, Foreground = Brush("#D9CCFF") } };
+        Grid.SetColumn(badge, 1);
+        versionLabel.Children.Add(badge);
+        profile.Children.Add(versionLabel);
+        _versions.Height = 42;
+        _versions.Background = Brush("#202631");
+        _versions.Foreground = Brush("#FFB86B");
+        _versions.BorderBrush = Brush("#8B6BFF");
+        profile.Children.Add(_versions);
+        profile.Children.Add(new TextBlock { Text = "Официальный каталог Mojang", TextWrapping = TextWrapping.Wrap, Foreground = Brush("#AEB8C8"), FontSize = 11 });
         _login.Background = Brush("#29243B");
         _login.Foreground = Brushes.White;
-        _login.Padding = new Thickness(18, 12);
+        _login.Padding = new Thickness(14, 10);
+        _login.HorizontalContentAlignment = HorizontalAlignment.Center;
         _login.Click -= LoginWithMicrosoft;
         _login.Click += LoginWithMicrosoft;
-        _mainContent.Children.Add(_login);
-        _play.Background = Brush("#7C4DFF");
-        _play.Foreground = Brushes.White;
-        _play.Padding = new Thickness(18, 12);
+        profile.Children.Add(_login);
+        var profileCard = new Border { Background = Brush("#20232D"), CornerRadius = new CornerRadius(14), Padding = new Thickness(20), Margin = new Thickness(0, 0, 16, 0), BorderBrush = Brush("#303744"), BorderThickness = new Thickness(1), Child = profile };
+        contentRow.Children.Add(profileCard);
+
+        var right = new StackPanel { Spacing = 12 };
+        right.Children.Add(new Border
+        {
+            Background = Brush("#1A2825"), BorderBrush = Brush("#28644A"), BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(12), Padding = new Thickness(16),
+            Child = new StackPanel
+            {
+                Spacing = 7,
+                Children =
+                {
+                    new TextBlock { Text = "СЕРВЕРНАЯ СБОРКА", FontSize = 10, Foreground = Brush("#19F58A") },
+                    new TextBlock { Text = "Моды — скоро", FontSize = 17, FontWeight = FontWeight.SemiBold },
+                    new TextBlock { Text = "Подготовим автоматическую установку и обновление модов.", TextWrapping = TextWrapping.Wrap, Foreground = Brush("#D0D8E0"), FontSize = 12 }
+                }
+            }
+        });
+        _play.Height = 66;
+        _play.Background = Brush("#19F58A");
+        _play.Foreground = Brush("#092318");
+        _play.BorderThickness = new Thickness(0);
+        _play.FontSize = 25;
+        _play.FontWeight = FontWeight.Black;
+        _play.HorizontalContentAlignment = HorizontalAlignment.Center;
         _play.Click -= PlayNotReady;
         _play.Click += PlayNotReady;
-        _mainContent.Children.Add(_play);
+        right.Children.Add(_play);
+        right.Children.Add(new TextBlock { Text = "ПЕРВАЯ УСТАНОВКА СКАЧАЕТ ФАЙЛЫ ИГРЫ", TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap, Foreground = Brush("#C0C8D5"), FontSize = 10, Margin = new Thickness(0, 0, 0, 8) });
+        Grid.SetColumn(right, 1);
+        contentRow.Children.Add(right);
+        _mainContent.Children.Add(contentRow);
         _status.Text = _account is null
             ? "Войди через Microsoft с аккаунтом, у которого есть Minecraft: Java Edition."
-            : $"Вход выполнен: {_account.Username}. Выбери версию и нажми «Играть».";
+            : $"Вход выполнен: {_account.Username}. Выбери версию и нажми «ИГРАТЬ».";
     }
 
     private async void LoginWithMicrosoft(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
