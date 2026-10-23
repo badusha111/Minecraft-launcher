@@ -65,7 +65,7 @@ public sealed class MinecraftMetadataService
 
         if (!Uri.TryCreate(entry.Url, UriKind.Absolute, out var metadataUri) ||
             metadataUri.Scheme != Uri.UriSchemeHttps ||
-            !metadataUri.Host.EndsWith("mojang.com", StringComparison.OrdinalIgnoreCase))
+            !(string.Equals(metadataUri.Host, "mojang.com", StringComparison.OrdinalIgnoreCase) || metadataUri.Host.EndsWith(".mojang.com", StringComparison.OrdinalIgnoreCase)))
             throw new InvalidDataException("The official version metadata URL is invalid.");
 
         var metadata = await GetJsonAsync<MinecraftVersionMetadata>(
