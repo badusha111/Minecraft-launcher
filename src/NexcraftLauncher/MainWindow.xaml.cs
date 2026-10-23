@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _settings = _settingsService.Load();
+        PlayerNicknameTextBox.Text = _settings.PlayerNickname;
         RestoreSelectedVersion();
     }
 
@@ -56,6 +57,25 @@ public partial class MainWindow : Window
     private async void Play_Click(object sender, RoutedEventArgs e)
     {
         if (_isInstalling) return;
+        var nickname = PlayerNicknameTextBox.Text.Trim();
+        if (!System.Text.RegularExpressions.Regex.IsMatch(nickname, @"^[A-Za-z0-9_]{3,16}$"))
+        {
+            StatusText.Text = "Введи ник длиной 3–16 символов: латинские буквы, цифры или подчёркивание.";
+            PlayerNicknameTextBox.Focus();
+            return;
+        }
+
+        _settings.PlayerNickname = nickname;
+        try
+        {
+            _settingsService.Save(_settings);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            StatusText.Text = $"Не удалось сохранить ник: {ex.Message}";
+            return;
+        }
+
         SaveSelectedVersion();
         var version = (VersionSelector.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Split('—', StringSplitOptions.TrimEntries)[0];
         if (string.IsNullOrWhiteSpace(version))
@@ -74,9 +94,9 @@ public partial class MainWindow : Window
             var status = new Progress<string>(message => StatusText.Text = message);
             var progress = new Progress<double>(value => DownloadProgress.Value = Math.Clamp(value * 100, 0, 100));
             await _installationService.InstallAsync(version, _settings.GameDirectory, status, progress);
-            StatusText.Text = $"Minecraft {version}: клиент, библиотеки и ресурсы загружены. Для онлайн-игры ещё нужна авторизация Microsoft и настройка запуска.";
+            StatusText.Text = $"Ник {nickname} сохранён. Файлы Minecraft {version} загружены; полноценный запуск и подключение к серверу — следующий этап."
             MessageBox.Show(
-                $"Файлы Minecraft {version} загружены и проверены.\n\nПапка игры: {_settings.GameDirectory}\n\nСледующий этап — авторизация Microsoft и полноценный запуск.",
+                $"Файлы Minecraft {version} загружены и проверены.\nНик NEXCRAFT: {nickname}\n\nПапка игры: {_settings.GameDirectory}\n\nСледующий этап — полноценный запуск и подключение к серверу.",
                 "NEXCRAFT — Установка завершена", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (OperationCanceledException)
