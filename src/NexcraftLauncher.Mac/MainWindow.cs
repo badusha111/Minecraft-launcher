@@ -263,19 +263,30 @@ public sealed class MainWindow : Window
         _nickname.BorderThickness = new Thickness(1);
         profile.Children.Add(_nickname);
         var versionLabel = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto"), Margin = new Thickness(0, 8, 0, 0) };
-        versionLabel.Children.Add(new TextBlock { Text = "ВЕРСИЯ MINECRAFT", FontSize = 12, FontWeight = FontWeight.Bold, Foreground = Brush("#B99AFF"), VerticalAlignment = VerticalAlignment.Center });
-        Grid.SetColumn(new Border { Background = Brush("#29213D"), BorderBrush = Brush("#6B4DFF"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Thickness(7, 3), Child = new TextBlock { Text = "JAVA", FontSize = 9, FontWeight = FontWeight.Bold, Foreground = Brush("#D9CCFF") } }, 1);
+        versionLabel.Children.Add(new TextBlock { Text = "ВЕРСИЯ MINECRAFT", FontSize = 12, FontWeight = FontWeight.Bold, Foreground = Brush("#E2C27A"), VerticalAlignment = VerticalAlignment.Center });
+        Grid.SetColumn(new Border { Background = Brush("#292318"), BorderBrush = Brush("#B89552"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Thickness(7, 3), Child = new TextBlock { Text = "JAVA EDITION", FontSize = 9, FontWeight = FontWeight.Bold, Foreground = Brush("#F0D9A0") } }, 1);
         var javaBadge = versionLabel.Children[0] as Control;
         var badge = new Border { Background = Brush("#29213D"), BorderBrush = Brush("#6B4DFF"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Thickness(7, 3), Child = new TextBlock { Text = "JAVA", FontSize = 9, FontWeight = FontWeight.Bold, Foreground = Brush("#D9CCFF") } };
         Grid.SetColumn(badge, 1);
         versionLabel.Children.Add(badge);
         profile.Children.Add(versionLabel);
         _versions.Height = 42;
-        _versions.Background = Brush("#202631");
-        _versions.Foreground = Brush("#FFB86B");
-        _versions.BorderBrush = Brush("#8B6BFF");
-        profile.Children.Add(_versions);
-        profile.Children.Add(new TextBlock { Text = "ЗАГРУЗЧИК", FontSize = 11, FontWeight = FontWeight.Bold, Foreground = Brush("#B99AFF"), Margin = new Thickness(0, 12, 0, 4) });
+        _versions.Background = Brush("#171522");
+        _versions.Foreground = Brush("#F0D9A0");
+        _versions.BorderBrush = Brush("#B89552");
+        _versions.Padding = new Thickness(10, 7);
+        _versions.FontSize = 13;
+        _versions.FontWeight = FontWeight.SemiBold;
+        profile.Children.Add(new Border
+        {
+            Background = Brush("#171522"),
+            BorderBrush = Brush("#B89552"),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(9),
+            Padding = new Thickness(3),
+            Child = _versions
+        });
+        profile.Children.Add(new TextBlock { Text = "ЗАГРУЗЧИК", FontSize = 11, FontWeight = FontWeight.Bold, Foreground = Brush("#E2C27A"), Margin = new Thickness(0, 12, 0, 4) });
         _loaders.Height = 44;
         _loaders.Background = Brush("#171522");
         _loaders.Foreground = Brush("#F0D9A0");
