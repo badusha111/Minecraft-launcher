@@ -138,15 +138,58 @@ public partial class MainWindow : Window
         }
 
         SaveSelectedVersion();
-        if (_offlineMode)
-        {
-            StatusText.Text = $"Офлайн-профиль «{nickname}» сохранён. Вход в Microsoft не требуется. Оригинальная Minecraft в этом режиме не запускается; следующий шаг — подключение бесплатной игры, поддерживающей локальные профили.";
-            return;
-        }
         var version = (VersionSelector.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Split('—', StringSplitOptions.TrimEntries)[0];
         if (string.IsNullOrWhiteSpace(version))
         {
             StatusText.Text = "Сначала выбери версию Minecraft.";
+            return;
+        }
+
+        if (_offlineMode)
+        {
+            if (_account is null)
+            {
+                StatusText.Text = "Чтобы играть без интернета, сначала войди через Microsoft онлайн и установи Minecraft. Офлайн-режим использует уже подтверждённую сессию и установленные файлы.";
+                return;
+            }
+
+            var installedVersion = Path.Combine(_settings.GameDirectory, "versions", version);
+            var jsonPath = Path.Combine(installedVersion, version + ".json");
+            var jarPath = Path.Combine(installedVersion, version + ".jar");
+            var javaMajorOffline = version.StartsWith("1.21", StringComparison.Ordinal) ? 21
+                : version.StartsWith("1.20", StringComparison.Ordinal) ? 17
+                : version.StartsWith("1.16", StringComparison.Ordinal) ? 8 : 0;
+            var javaPath = javaMajorOffline == 0 ? null : Directory.Exists(Path.Combine(_settings.GameDirectory, "runtime", $"java-{javaMajorOffline}"))
+                ? Directory.GetFiles(Path.Combine(_settings.GameDirectory, "runtime", $"java-{javaMajorOffline}"), "java.exe", SearchOption.AllDirectories).FirstOrDefault()
+                : null;
+
+            if (!File.Exists(jsonPath) || !File.Exists(jarPath) || string.IsNullOrWhiteSpace(javaPath))
+            {
+                StatusText.Text = "Для офлайн-запуска эта версия и Java должны быть заранее установлены. Переключись на Microsoft и запусти игру один раз с интернетом.";
+                return;
+            }
+
+            _isInstalling = true;
+            PlayButton.IsEnabled = false;
+            try
+            {
+                StatusText.Text = "Запускаю установленную Minecraft с ранее подтверждённым профилем…";
+                await _launchService.LaunchAsync(version, _settings.GameDirectory, javaPath,
+                    new MinecraftSession(_account.Username, _account.Uuid, _account.AccessToken),
+                    _settings.MemoryMinimumMb, _settings.MemoryMaximumMb,
+                    new Progress<string>(message => StatusText.Text = message));
+                StatusText.Text = $"Minecraft {version} запущена. Офлайн-режим доступен для ранее подтверждённого аккаунта и установленных файлов.";
+                if (_settings.CloseLauncherOnGameStart) Close();
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = $"Не удалось запустить офлайн: {ex.Message}. Если сессия истекла, подключись к интернету и войди снова.";
+            }
+            finally
+            {
+                _isInstalling = false;
+                PlayButton.IsEnabled = true;
+            }
             return;
         }
 
