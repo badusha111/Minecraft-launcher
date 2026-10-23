@@ -88,7 +88,7 @@ public sealed class JavaRuntimeService
             if (process.ExitCode != 0)
                 return null;
 
-            var match = Regex.Match(output, @"version\s+\"(?<version>[^\"]+)\"");
+            var match = Regex.Match(output, @"version\s+""(?<version>[^""]+)""");
             if (!match.Success)
                 return null;
 
