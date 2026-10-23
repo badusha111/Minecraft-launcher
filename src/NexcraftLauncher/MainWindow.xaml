@@ -171,9 +171,9 @@
                                 </Grid>
                                 <Border Background="#171522" BorderBrush="#B89552" BorderThickness="1" CornerRadius="9" Padding="3">
                                     <ComboBox x:Name="LoaderSelector" Height="42" SelectedIndex="0" BorderThickness="0" Background="#171522" Foreground="#F0D9A0" ToolTip="Выбери обычную игру или загрузчик модов">
-                                        <ComboBoxItem Content="✦   Vanilla  ·  Обычная игра"/>
-                                        <ComboBoxItem Content="✧   Fabric  ·  Лёгкий загрузчик"/>
-                                        <ComboBoxItem Content="◆   Forge  ·  Продвинутые моды"/>
+                                        <ComboBoxItem Content="Vanilla  ·  Обычная игра"/>
+                                        <ComboBoxItem Content="Fabric  ·  Лёгкий загрузчик"/>
+                                        <ComboBoxItem Content="Forge  ·  Продвинутые моды"/>
                                     </ComboBox>
                                 </Border>
                                 <TextBlock Text="Vanilla — без модов   ·   Fabric — лёгкие моды   ·   Forge — крупные сборки" TextWrapping="Wrap" Foreground="#AFA5C2" FontSize="10" Margin="2,7,0,0"/>
