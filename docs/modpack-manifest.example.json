@@ -1,0 +1,16 @@
+{
+  "manifestVersion": 1,
+  "packId": "nexcraft-default",
+  "displayName": "NEXCRAFT Server Pack",
+  "minecraftVersion": "1.21.1",
+  "loader": "fabric",
+  "loaderVersion": "TBD",
+  "files": [
+    {
+      "path": "mods/example-mod.jar",
+      "url": "https://downloads.example.com/nexcraft/example-mod.jar",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "required": true
+    }
+  ]
+}
