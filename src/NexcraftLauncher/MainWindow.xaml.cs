@@ -377,15 +377,25 @@ public partial class MainWindow : Window
             var installerUrl = $"https://maven.minecraftforge.net/net/minecraftforge/forge/{fullVersion}/forge-{fullVersion}-installer.jar";
             var installerPath = Path.Combine(Path.GetTempPath(), $"forge-{fullVersion}-installer.jar");
             await File.WriteAllBytesAsync(installerPath, await http.GetByteArrayAsync(installerUrl));
-            var start = new ProcessStartInfo("java") { UseShellExecute = false, CreateNoWindow = true };
-            start.ArgumentList.Add("-jar"); start.ArgumentList.Add(installerPath);
-            start.ArgumentList.Add("--installClient"); start.ArgumentList.Add("--installDir"); start.ArgumentList.Add(gameDir);
+            var start = new ProcessStartInfo("java") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            start.ArgumentList.Add("-jar");
+            start.ArgumentList.Add(installerPath);
+            start.ArgumentList.Add("--installClient");
+            start.ArgumentList.Add(gameDir);
             using var installer = Process.Start(start) ?? throw new InvalidOperationException("Не удалось запустить Java для Forge. Установи подходящую Java.");
+            var stdoutTask = installer.StandardOutput.ReadToEndAsync();
+            var stderrTask = installer.StandardError.ReadToEndAsync();
             await installer.WaitForExitAsync();
-            if (installer.ExitCode != 0) throw new InvalidOperationException($"Установщик Forge завершился с кодом {installer.ExitCode}.");
+            var installerOutput = (await stdoutTask) + Environment.NewLine + (await stderrTask);
+            if (installer.ExitCode != 0) throw new InvalidOperationException($"Установщик Forge завершился с кодом {installer.ExitCode}: {installerOutput}");
             var versionsDir = Path.Combine(gameDir, "versions");
-            var installed = Directory.Exists(versionsDir) ? Directory.GetDirectories(versionsDir, gameVersion + "-forge-*").OrderByDescending(Directory.GetLastWriteTimeUtc).FirstOrDefault() : null;
-            if (installed is null) throw new DirectoryNotFoundException("Профиль Forge не найден после установки.");
+            var installed = Directory.Exists(versionsDir)
+                ? Directory.GetDirectories(versionsDir)
+                    .Where(dir => Path.GetFileName(dir).StartsWith(gameVersion + "-forge-", StringComparison.OrdinalIgnoreCase)
+                               || Path.GetFileName(dir).StartsWith(gameVersion + "-Forge", StringComparison.OrdinalIgnoreCase))
+                    .OrderByDescending(Directory.GetLastWriteTimeUtc).FirstOrDefault()
+                : null;
+            if (installed is null) throw new DirectoryNotFoundException($"Forge сообщил об успешной установке, но профиль не найден в {versionsDir}. Вывод установщика: {installerOutput}");
             return Path.GetFileName(installed);
         }
 
