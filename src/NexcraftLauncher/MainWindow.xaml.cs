@@ -419,7 +419,7 @@ public partial class MainWindow : Window
                 var errorTask = process.StandardError.ReadToEndAsync();
                 process.WaitForExit();
                 var output = outputTask.GetAwaiter().GetResult() + errorTask.GetAwaiter().GetResult();
-                var match = System.Text.RegularExpressions.Regex.Match(output, @"version\s+\"(?:1\.)?(\d+)");
+                var match = System.Text.RegularExpressions.Regex.Match(output, @"version\s+""(?:1\.)?(\d+)""");
                 if (match.Success && int.TryParse(match.Groups[1].Value, out var major) && major == requiredMajor)
                     return candidate;
             }
@@ -434,7 +434,7 @@ public partial class MainWindow : Window
             _ => "Java 8"
         };
         throw new InvalidOperationException(
-            $"Для Minecraft {gameVersion} нужен {requirement}, но подходящая Java не найдена. Сейчас у тебя обнаружена Java 8 (1.8.0_401). Установи {requirement} и повтори запуск. Лаунчер больше не будет запускать установщик Forge заведомо неподходящей Java.");
+            $"Для Minecraft {gameVersion} нужен {requirement}, но подходящая Java не найдена. Возможно, сейчас используется Java 8 (1.8.0_401), которая не подходит для этой версии. Установи {requirement} и повтори запуск. Лаунчер больше не будет запускать установщик Forge заведомо неподходящей Java.");
     }
 
     private async Task<string> PrepareLoaderVersionAsync(string loaderLabel, string gameVersion, string gameDir, MinecraftPath path)
