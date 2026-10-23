@@ -17,6 +17,7 @@ namespace NexcraftLauncher;
 public partial class MainWindow : Window
 {
     private readonly LauncherSettingsService _settingsService = new();
+    private readonly MinecraftMetadataService _metadataService = new();
     private readonly LauncherSettings _settings;
     private bool _isInstalling;
 
@@ -27,8 +28,43 @@ public partial class MainWindow : Window
         
         PlayerNicknameTextBox.Text = _settings.PlayerNickname;
         RestoreSelectedVersion();
-        
+
         StatusText.Text = "Введи свой ник, выбери версию игры и нажми играть.";
+        Loaded += MainWindow_Loaded;
+    }
+
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            VersionInfoText.Text = "Загружаем официальный список версий...";
+            var manifest = await _metadataService.GetVersionManifestAsync();
+            var releases = manifest.Versions
+                .Where(version => string.Equals(version.Type, "release", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (releases.Count == 0)
+                throw new InvalidDataException("В официальном списке нет стабильных релизов.");
+
+            VersionSelector.Items.Clear();
+            foreach (var version in releases)
+            {
+                VersionSelector.Items.Add(new ComboBoxItem
+                {
+                    Content = $"{version.Id} — Vanilla"
+                });
+            }
+
+            RestoreSelectedVersion();
+            VersionInfoText.Text = $"Доступно стабильных версий: {releases.Count} · официальный каталог Mojang";
+            StatusText.Text = "Список обновлён. Выбери версию и нажми «ИГРАТЬ».";
+        }
+        catch
+        {
+            // Keep the built-in versions available if the official metadata service is temporarily unreachable.
+            VersionInfoText.Text = $"Не удалось обновить список. Резервных версий: {VersionSelector.Items.Count}.";
+            RestoreSelectedVersion();
+        }
     }
 
     private void Library_Click(object sender, RoutedEventArgs e) { }
