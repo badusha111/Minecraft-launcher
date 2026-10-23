@@ -1,0 +1,38 @@
+name: Build NEXCRAFT for macOS
+
+on:
+  push:
+    branches: [main, feature/macos-port]
+    paths:
+      - "src/NexcraftLauncher.Mac/**"
+      - ".github/workflows/build-macos.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/NexcraftLauncher.Mac/**"
+      - ".github/workflows/build-macos.yml"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Publish macOS (${{ matrix.rid }})
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [osx-arm64, osx-x64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore
+        run: dotnet restore src/NexcraftLauncher.Mac/NexcraftLauncher.Mac.csproj
+      - name: Publish
+        run: dotnet publish src/NexcraftLauncher.Mac/NexcraftLauncher.Mac.csproj --configuration Release --runtime ${{ matrix.rid }} --self-contained true -o artifacts/NEXCRAFT-${{ matrix.rid }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NEXCRAFT-${{ matrix.rid }}
+          path: artifacts/NEXCRAFT-${{ matrix.rid }}/
+          if-no-files-found: error
