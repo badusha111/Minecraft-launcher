@@ -21,6 +21,7 @@ public sealed class MainWindow : Window
     private readonly TextBox _nickname = new() { Watermark = "Ник игрока", MaxLength = 16 };
     private readonly Button _play = new() { Content = "Установить версию", HorizontalContentAlignment = HorizontalAlignment.Center };
     private bool _isInstalling;
+    private string? _savedVersion;
 
     public MainWindow()
     {
@@ -168,6 +169,8 @@ public sealed class MainWindow : Window
             using var document = JsonDocument.Parse(File.ReadAllText(_settingsFile));
             if (document.RootElement.TryGetProperty("nickname", out var nickname))
                 _nickname.Text = nickname.GetString() ?? string.Empty;
+            if (document.RootElement.TryGetProperty("selectedVersion", out var selectedVersion))
+                _savedVersion = selectedVersion.GetString();
         }
         catch
         {
@@ -181,7 +184,11 @@ public sealed class MainWindow : Window
         {
             var directory = Path.GetDirectoryName(_settingsFile)!;
             Directory.CreateDirectory(directory);
-            File.WriteAllText(_settingsFile, JsonSerializer.Serialize(new { nickname = _nickname.Text?.Trim() ?? string.Empty }, new JsonSerializerOptions { WriteIndented = true }));
+            File.WriteAllText(_settingsFile, JsonSerializer.Serialize(new
+            {
+                nickname = _nickname.Text?.Trim() ?? string.Empty,
+                selectedVersion = _versions.SelectedItem?.ToString() ?? _savedVersion
+            }, new JsonSerializerOptions { WriteIndented = true }));
         }
         catch
         {
@@ -241,8 +248,12 @@ public sealed class MainWindow : Window
         var openFolder = NavButton("Открыть папку игры в Finder", OpenGameFolder);
         openFolder.HorizontalContentAlignment = HorizontalAlignment.Center;
         _mainContent.Children.Add(openFolder);
+        _mainContent.Children.Add(new TextBlock { Text = "Java", Foreground = Brush("#B8C1D0"), Margin = new Thickness(0, 10, 0, 0) });
+        var checkJava = NavButton("Проверить установленную Java", () => _ = CheckJavaAsync());
+        checkJava.HorizontalContentAlignment = HorizontalAlignment.Center;
+        _mainContent.Children.Add(checkJava);
         _mainContent.Children.Add(new TextBlock { Text = "Поддерживаются сборки для Apple Silicon и Intel.", Foreground = Brush("#B8C1D0"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 10) });
-        _status.Text = "Настройки ника сохраняются автоматически на этом Mac.";
+        _status.Text = "Ник и выбранная версия сохраняются автоматически на этом Mac.";
     }
 
     private static Border Card(string title, string subtitle) => new()
@@ -263,6 +274,43 @@ public sealed class MainWindow : Window
         }
     };
 
+    private async Task CheckJavaAsync()
+    {
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "java",
+                Arguments = "-version",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using var process = Process.Start(startInfo);
+            if (process is null)
+            {
+                _status.Text = "Не удалось запустить проверку Java.";
+                return;
+            }
+
+            var stdoutTask = process.StandardOutput.ReadToEndAsync();
+            var stderrTask = process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+            var output = (await stderrTask) + (await stdoutTask);
+            output = output.Trim();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+                _status.Text = process.ExitCode == 0 && !string.IsNullOrWhiteSpace(output)
+                    ? $"Java обнаружена: {output.Split('\\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()}"
+                    : "Java не найдена или не запускается. Для современных версий Minecraft обычно требуется Java 21; для старых версий требования отличаются.");
+        }
+        catch (Exception)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+                _status.Text = "Java не найдена. Для современных версий Minecraft обычно требуется Java 21; для старых версий требования отличаются.");
+        }
+    }
+
     private async Task LoadVersionsAsync()
     {
         try
@@ -277,7 +325,11 @@ public sealed class MainWindow : Window
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 _versions.ItemsSource = releases;
-                _versions.SelectedItem = releases.FirstOrDefault(v => v == "1.21.1") ?? releases.FirstOrDefault();
+                _versions.SelectedItem = releases.FirstOrDefault(v => v == _savedVersion)
+                    ?? releases.FirstOrDefault(v => v == "1.21.1")
+                    ?? releases.FirstOrDefault();
+                _versions.SelectionChanged += (_, _) => SaveSettings();
+                _savedVersion = _versions.SelectedItem?.ToString();
                 _status.Text = $"Загружено официальных релизов Minecraft: {releases.Length}";
             });
         }
