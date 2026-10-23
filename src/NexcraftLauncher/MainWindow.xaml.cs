@@ -45,7 +45,7 @@ public partial class MainWindow : Window
         ModeDescriptionText.Text = "Официальный вход Microsoft, проверка доступа и запуск Minecraft Java Edition.";
         SignInButton.Visibility = Visibility.Visible;
         PlayButton.Content = "▶  ИГРАТЬ";
-        StatusText.Text = _account is null ? "Войди через Microsoft, чтобы установить и запустить Minecraft." : $"Вход выполнен: {_account.Username}.";
+        StatusText.Text = _account is null ? "Войди через Microsoft, чтобы установить and запустить Minecraft." : $"Вход выполнен: {_account.Username}.";
     }
 
     private void OfflineMode_Click(object sender, RoutedEventArgs e)
@@ -56,7 +56,6 @@ public partial class MainWindow : Window
         MicrosoftModeButton.Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#272D3A"));
         MicrosoftModeButton.Foreground = System.Windows.Media.Brushes.White;
         ModeDescriptionText.Text = "Локальный ник без Microsoft. Свободное скачивание файлов и запуск игры в оффлайн-режиме.";
-        SignInButton.Visibility = Visibility.Collapsed;
         PlayButton.Content = "▶  ИГРАТЬ БЕЗ ЛИЦЕНЗИИ";
         StatusText.Text = "Введи локальный ник, выбери версию и нажми играть.";
     }
@@ -68,6 +67,11 @@ public partial class MainWindow : Window
     }
 
     private void Mods_Click(object sender, RoutedEventArgs e)
+    {
+        // Будет реализовано позже
+    }
+
+    private void Settings_Click(object sender, RoutedEventArgs e)
     {
         // Будет реализовано позже
     }
@@ -186,20 +190,23 @@ public partial class MainWindow : Window
             var path = new MinecraftPath(gameDir);
             var launcher = new MinecraftLauncher(path);
 
+            // В CmlLib v4 событие использует TotalTasks и ProgressedTasks для вычисления
             launcher.FileProgressChanged += (pSender, pArgs) =>
             {
                 Dispatcher.Invoke(() =>
                 {
-                    StatusText.Text = $"Проверка файлов: {pArgs.ProgressedTasks}/{pArgs.TotalTasks} ({pArgs.Percent}%)";
+                    int percentage = pArgs.TotalTasks > 0 ? (int)((double)pArgs.ProgressedTasks / pArgs.TotalTasks * 100) : 0;
+                    StatusText.Text = $"Проверка файлов: {pArgs.ProgressedTasks}/{pArgs.TotalTasks} ({percentage}%)";
                 });
             };
 
-            CmlLib.Core.Auth.MinecraftSession session;
+            // В CmlLib v4 класс сессии называется MSession вместо MinecraftSession
+            MSession session;
 
             if (_offlineMode)
             {
                 StatusText.Text = "Создание автономного профиля...";
-                session = CmlLib.Core.Auth.MinecraftSession.CreateOfflineSession(nickname);
+                session = MSession.CreateOfflineSession(nickname);
             }
             else
             {
@@ -211,10 +218,9 @@ public partial class MainWindow : Window
                     return;
                 }
                 StatusText.Text = "Авторизация официальной сессии...";
-                session = new CmlLib.Core.Auth.MinecraftSession(_account.Username, _account.AccessToken, _account.Uuid, "msa");
+                session = new MSession(_account.Username, _account.AccessToken, _account.Uuid);
             }
 
-            // Безопасные дефолтные настройки памяти (4ГБ макс, 1ГБ мин), чтобы не зависеть от переменных
             var launchOption = new MLaunchOption
             {
                 MaximumRamMb = 4096,
