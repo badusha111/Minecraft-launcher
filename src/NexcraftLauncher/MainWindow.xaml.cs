@@ -236,12 +236,24 @@ public partial class MainWindow : Window
                 session = new MSession(_account.Username, _account.AccessToken, _account.Uuid);
             }
 
-            var launchOption = new MLaunchOption
+                        var launchOption = new MLaunchOption
             {
                 MaximumRamMb = 4096,
                 MinimumRamMb = 1024,
                 Session = session
             };
+
+            // ЖЕСТКАЯ РАЗБЛОКИРОВКА КНОПКИ МУЛЬТИПЛЕЕРА ДЛЯ CMLIB V4
+            // Если включен оффлайн-режим, мы принудительно заставляем лаунчер дописать
+            // в аргументы запуска Minecraft флаг "--userType legacy".
+            // Это полностью снимет защиту родительского контроля клиента игры и активирует кнопку!
+            if (_offlineMode)
+            {
+                launchOption.ArgumentBuilders.Add(new CmlLib.Core.ProcessBuilder.GenericArgumentBuilder(new[] {
+                    "--userType", "legacy"
+                }));
+            }
+
 
             StatusText.Text = "Анализ необходимых файлов и загрузка компонентов...";
             
