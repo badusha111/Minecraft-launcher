@@ -17,12 +17,13 @@
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#252B39"/>
+                    <Setter Property="Background" Value="#30204F"/>
                     <Setter Property="Foreground" Value="#FFFFFF"/>
-                    <Setter Property="BorderBrush" Value="#51427D"/>
+                    <Setter Property="BorderBrush" Value="#8B5CF6"/>
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#34274F"/>
+                    <Setter Property="Background" Value="#4C2A7A"/>
+                    <Setter Property="Foreground" Value="#FFFFFF"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -94,7 +95,7 @@
             </DockPanel>
             <ScrollViewer x:Name="HomeScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="26,8,26,24">
-                    <Border Height="270" CornerRadius="16" ClipToBounds="True" BorderBrush="#5B4B36" BorderThickness="1">
+                    <Border Height="270" CornerRadius="16" ClipToBounds="True" BorderBrush="#51427D" BorderThickness="1">
                         <Grid>
                             <Grid.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -211,8 +212,35 @@
                                     <TextBlock Text="Подготовим автоматическую установку и обновление модов." TextWrapping="Wrap" Foreground="#D0D8E0" FontSize="12"/>
                                 </StackPanel>
                             </Border>
-                            <Button x:Name="PlayButton" Height="66" Background="#7C3AED" Foreground="#FFFFFF" BorderThickness="0" FontSize="25" FontWeight="Black" Content="ИГРАТЬ" Cursor="Hand" Click="Play_Click">
-                                <Button.Template><ControlTemplate TargetType="Button"><Border CornerRadius="12"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#8B5CF6" Offset="0"/><GradientStop Color="#6D28D9" Offset="1"/></LinearGradientBrush></Border.Background><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></ControlTemplate></Button.Template>
+                            <Button x:Name="PlayButton" Height="66" Background="#19F58A" Foreground="#062315" BorderThickness="0" FontSize="25" FontWeight="Black" Content="ИГРАТЬ" Cursor="Hand" Click="Play_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="PlayBorder" CornerRadius="12" BorderThickness="1" BorderBrush="#5BFFB1">
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                    <GradientStop Color="#35F7A0" Offset="0"/>
+                                                    <GradientStop Color="#0ABF68" Offset="1"/>
+                                                </LinearGradientBrush>
+                                            </Border.Background>
+                                            <ContentPresenter x:Name="PlayContent" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="PlayBorder" Property="BorderBrush" Value="#B6FFD8"/>
+                                                <Setter TargetName="PlayBorder" Property="Opacity" Value="0.92"/>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter TargetName="PlayBorder" Property="RenderTransform">
+                                                    <Setter.Value><ScaleTransform ScaleX="0.97" ScaleY="0.95"/></Setter.Value>
+                                                </Setter>
+                                                <Setter TargetName="PlayBorder" Property="Opacity" Value="0.78"/>
+                                            </Trigger>
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter TargetName="PlayBorder" Property="Opacity" Value="0.55"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
                             </Button>
                             <TextBlock Text="ПЕРВАЯ УСТАНОВКА СКАЧАЕТ ФАЙЛЫ ИГРЫ" TextAlignment="Center" TextWrapping="Wrap" Foreground="#C0C8D5" FontSize="10" Margin="0,10,0,0"/>
                         </StackPanel>
