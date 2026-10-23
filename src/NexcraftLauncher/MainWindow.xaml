@@ -79,8 +79,10 @@
         <Grid Grid.Column="1">
             <Grid.RowDefinitions><RowDefinition Height="62"/><RowDefinition Height="*"/></Grid.RowDefinitions>
             <DockPanel Margin="26,0,26,0" LastChildFill="False">
-                <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <TextBlock Text="ЦЕНТР ИГРЫ" Foreground="{StaticResource MutedBrush}" FontSize="10"/>
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="NEXCRAFT" Foreground="#F5F7FA" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <Border Width="1" Height="24" Background="#8B5CF6" Margin="14,0"/>
+                    <TextBlock Text="Официальный лаунчер МЕХМАТА" Foreground="#C084FC" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
                 </StackPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <Ellipse Width="8" Height="8" Fill="{StaticResource GreenBrush}" Margin="0,0,8,0"/>
@@ -93,9 +95,9 @@
                         <Grid>
                             <Grid.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#27384A" Offset="0"/>
-                                    <GradientStop Color="#20243B" Offset="0.48"/>
-                                    <GradientStop Color="#172C28" Offset="1"/>
+                                    <GradientStop Color="#211447" Offset="0"/>
+                                    <GradientStop Color="#171A35" Offset="0.48"/>
+                                    <GradientStop Color="#102B32" Offset="1"/>
                                 </LinearGradientBrush>
                             </Grid.Background>
                             <Canvas IsHitTestVisible="False" Opacity="0.65">
@@ -110,14 +112,14 @@
                                 <Line X1="430" Y1="160" X2="490" Y2="220" Stroke="#19F58A" StrokeThickness="2" Opacity="0.8"/>
                                 <Line X1="490" Y1="160" X2="430" Y2="220" Stroke="#FF9D45" StrokeThickness="2" Opacity="0.8"/>
                             </Canvas>
-                            <Border HorizontalAlignment="Left" Width="8" Background="{StaticResource OrangeBrush}" Opacity="0.85"/>
+                            <Border HorizontalAlignment="Left" Width="8" Background="#8B5CF6" Opacity="0.85"/>
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Left" Margin="34,0,0,0" MaxWidth="470">
                                 <Border Background="#1B2029" CornerRadius="4" Padding="10,5" HorizontalAlignment="Left" Margin="0,0,0,15">
-                                    <TextBlock Text="НОВОЕ ПРИКЛЮЧЕНИЕ" FontSize="10" FontWeight="Bold" Foreground="{StaticResource GreenBrush}"/>
+                                    <TextBlock Text="NEXCRAFT — ЭТО НЕ ПРОСТО ЛАУНЧЕР" FontSize="10" FontWeight="Bold" Foreground="{StaticResource GreenBrush}"/>
                                 </Border>
                                 <TextBlock Text="ТВОЙ МИР." FontSize="39" FontWeight="Black" Foreground="White"/>
-                                <TextBlock Text="ТВОИ ПРАВИЛА." FontSize="39" FontWeight="Black" Foreground="{StaticResource GreenBrush}"/>
-                                <TextBlock Text="Подготовься к игре — остальное впереди." FontSize="14" Foreground="#E2E7EF" Margin="0,10,0,0"/>
+                                <TextBlock Text="ТВОИ ПРАВИЛА." FontSize="39" FontWeight="Black" Foreground="#B45CFF"/>
+                                <TextBlock Text="Это твой мир, твои правила." FontSize="14" Foreground="#E2E7EF" Margin="0,10,0,0"/>
                             </StackPanel>
                             <Border VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,20,0" BorderBrush="#687588" BorderThickness="1" Background="#70202731" CornerRadius="8" Padding="12,8">
                                 <TextBlock Text="JAVA EDITION" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF"/>
