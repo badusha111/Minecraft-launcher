@@ -15,7 +15,11 @@ namespace NexcraftLauncherMac;
 public sealed class MainWindow : Window
 {
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(20) };
-    private readonly string _gameDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".minecraft");
+    private string _gameDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".minecraft");
+    private int _minimumRamMb = 1024;
+    private int _maximumRamMb = 4096;
+    private bool _closeLauncherOnGameStart;
+    private readonly List<Button> _navigationButtons = new();
     private readonly string _settingsFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "NEXCRAFT", "settings.json");
     private readonly StackPanel _mainContent = new() { Spacing = 12 };
     private readonly TextBlock _status = new() { Text = "NEXCRAFT для macOS · готов к настройке", Foreground = Brush("#B8C1D0"), TextWrapping = TextWrapping.Wrap };
@@ -143,8 +147,24 @@ public sealed class MainWindow : Window
             Padding = new Thickness(12),
             CornerRadius = new CornerRadius(8)
         };
-        button.Click += (_, _) => action();
+        button.Click += (_, _) =>
+        {
+            SetActiveNavigation(button);
+            action();
+        };
+        _navigationButtons.Add(button);
         return button;
+    }
+
+    private void SetActiveNavigation(Button active)
+    {
+        foreach (var button in _navigationButtons)
+        {
+            var selected = ReferenceEquals(button, active);
+            button.Background = Brush(selected ? "#25213A" : "#151922");
+            button.Foreground = Brush(selected ? "#B99AFF" : "#C7CEDA");
+            button.BorderBrush = Brush(selected ? "#51427D" : "#151922");
+        }
     }
 
     private void PreparePage(string title, string subtitle)
@@ -156,6 +176,7 @@ public sealed class MainWindow : Window
 
     private void ShowHome()
     {
+        if (_navigationButtons.Count > 0) SetActiveNavigation(_navigationButtons[0]);
         PreparePage("", "");
         _mainContent.Spacing = 0;
 
@@ -352,12 +373,13 @@ public sealed class MainWindow : Window
             var launchOptions = new MLaunchOption
             {
                 Session = session,
-                MinimumRamMb = 1024,
-                MaximumRamMb = 4096
+                MinimumRamMb = _minimumRamMb,
+                MaximumRamMb = _maximumRamMb
             };
             var process = await launcher.InstallAndBuildProcessAsync(version, launchOptions);
             process.Start();
             _status.Text = $"Minecraft {version} запущен для аккаунта {_account.Username}.";
+            if (_closeLauncherOnGameStart) Close();
             _play.Content = "Играть";
         }
         catch (Exception ex)
@@ -382,6 +404,14 @@ public sealed class MainWindow : Window
                 _nickname.Text = nickname.GetString() ?? string.Empty;
             if (document.RootElement.TryGetProperty("selectedVersion", out var selectedVersion))
                 _savedVersion = selectedVersion.GetString();
+            if (document.RootElement.TryGetProperty("gameDirectory", out var gameDirectory) && !string.IsNullOrWhiteSpace(gameDirectory.GetString()))
+                _gameDirectory = gameDirectory.GetString()!;
+            if (document.RootElement.TryGetProperty("minimumRamMb", out var minimumRam) && minimumRam.TryGetInt32(out var min))
+                _minimumRamMb = Math.Clamp(min, 512, 65536);
+            if (document.RootElement.TryGetProperty("maximumRamMb", out var maximumRam) && maximumRam.TryGetInt32(out var max))
+                _maximumRamMb = Math.Clamp(max, _minimumRamMb, 65536);
+            if (document.RootElement.TryGetProperty("closeLauncherOnGameStart", out var closeLauncher) && (closeLauncher.ValueKind == JsonValueKind.True || closeLauncher.ValueKind == JsonValueKind.False))
+                _closeLauncherOnGameStart = closeLauncher.GetBoolean();
         }
         catch
         {
@@ -398,7 +428,11 @@ public sealed class MainWindow : Window
             File.WriteAllText(_settingsFile, JsonSerializer.Serialize(new
             {
                 nickname = _nickname.Text?.Trim() ?? string.Empty,
-                selectedVersion = _versions.SelectedItem?.ToString() ?? _savedVersion
+                selectedVersion = _versions.SelectedItem?.ToString() ?? _savedVersion,
+                gameDirectory = _gameDirectory,
+                minimumRamMb = _minimumRamMb,
+                maximumRamMb = _maximumRamMb,
+                closeLauncherOnGameStart = _closeLauncherOnGameStart
             }, new JsonSerializerOptions { WriteIndented = true }));
         }
         catch
@@ -424,6 +458,12 @@ public sealed class MainWindow : Window
     private void ShowMods()
     {
         PreparePage("Моды и сборки", "Файлы .jar в папке mods текущей игровой директории.");
+        var refresh = NavButton("Обновить список модов", ShowMods);
+        refresh.HorizontalContentAlignment = HorizontalAlignment.Center;
+        _mainContent.Children.Add(refresh);
+        var open = NavButton("Открыть папку модов", () => OpenFolder(Path.Combine(_gameDirectory, "mods")));
+        open.HorizontalContentAlignment = HorizontalAlignment.Center;
+        _mainContent.Children.Add(open);
         var dir = Path.Combine(_gameDirectory, "mods");
         var files = Directory.Exists(dir)
             ? Directory.GetFiles(dir, "*.jar").OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase).ToArray()
@@ -439,6 +479,12 @@ public sealed class MainWindow : Window
     private void ShowLibrary()
     {
         PreparePage("Библиотека", "Версии, найденные в папке Minecraft.");
+        var refresh = NavButton("Обновить библиотеку", ShowLibrary);
+        refresh.HorizontalContentAlignment = HorizontalAlignment.Center;
+        _mainContent.Children.Add(refresh);
+        var open = NavButton("Открыть папку версий", () => OpenFolder(Path.Combine(_gameDirectory, "versions")));
+        open.HorizontalContentAlignment = HorizontalAlignment.Center;
+        _mainContent.Children.Add(open);
         var dir = Path.Combine(_gameDirectory, "versions");
         var versions = Directory.Exists(dir)
             ? Directory.GetDirectories(dir).Where(p => File.Exists(Path.Combine(p, Path.GetFileName(p) + ".json"))).OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase).ToArray()
@@ -453,18 +499,81 @@ public sealed class MainWindow : Window
 
     private void ShowSettings()
     {
-        PreparePage("Настройки", "Основные параметры приложения.");
-        _mainContent.Children.Add(new TextBlock { Text = "Папка игры", Foreground = Brush("#B8C1D0") });
-        _mainContent.Children.Add(new TextBlock { Text = _gameDirectory, TextWrapping = TextWrapping.Wrap });
-        var openFolder = NavButton("Открыть папку игры в Finder", OpenGameFolder);
-        openFolder.HorizontalContentAlignment = HorizontalAlignment.Center;
-        _mainContent.Children.Add(openFolder);
-        _mainContent.Children.Add(new TextBlock { Text = "Java", Foreground = Brush("#B8C1D0"), Margin = new Thickness(0, 10, 0, 0) });
+        PreparePage("Настройки", "Подстрой игру под свой компьютер — параметры сохраняются автоматически.");
+        _mainContent.Children.Add(new TextBlock { Text = "Папка игры", Foreground = Brush("#B8C1D0"), Margin = new Thickness(0, 8, 0, 4) });
+        var gamePath = new TextBox { Text = _gameDirectory, Watermark = "Путь к папке Minecraft", Padding = new Thickness(10, 8), Background = Brush("#202631"), Foreground = Brushes.White, BorderBrush = Brush("#586477") };
+        _mainContent.Children.Add(gamePath);
+        var folderActions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        var openGame = NavButton("Открыть папку в Finder", () => OpenFolder(gamePath.Text ?? _gameDirectory));
+        openGame.HorizontalContentAlignment = HorizontalAlignment.Center;
+        folderActions.Children.Add(openGame);
+        var applyPath = NavButton("Сохранить путь", () =>
+        {
+            var candidate = gamePath.Text?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(candidate)) { _status.Text = "Укажи путь к папке игры."; return; }
+            _gameDirectory = Path.GetFullPath(candidate);
+            try { Directory.CreateDirectory(_gameDirectory); }
+            catch (Exception ex) { _status.Text = $"Не удалось создать папку игры: {ex.Message}"; return; }
+            SaveSettings();
+            _status.Text = $"Папка игры сохранена: {_gameDirectory}";
+        });
+        applyPath.HorizontalContentAlignment = HorizontalAlignment.Center;
+        folderActions.Children.Add(applyPath);
+        _mainContent.Children.Add(folderActions);
+
+        _mainContent.Children.Add(new TextBlock { Text = "Память для Minecraft (МБ)", Foreground = Brush("#B8C1D0"), Margin = new Thickness(0, 14, 0, 4) });
+        var memoryRow = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*") };
+        var minimum = new ComboBox { ItemsSource = new[] { 512, 1024, 2048, 4096 }, SelectedItem = _minimumRamMb, Background = Brush("#202631"), Foreground = Brushes.White, Padding = new Thickness(8) };
+        var maximum = new ComboBox { ItemsSource = new[] { 2048, 4096, 6144, 8192, 12288, 16384 }, SelectedItem = _maximumRamMb, Background = Brush("#202631"), Foreground = Brushes.White, Padding = new Thickness(8), Margin = new Thickness(8, 0, 0, 0) };
+        var minPanel = new StackPanel { Spacing = 5 };
+        minPanel.Children.Add(new TextBlock { Text = "Минимум", FontSize = 12, Foreground = Brush("#C0C8D5") });
+        minPanel.Children.Add(minimum);
+        var maxPanel = new StackPanel { Spacing = 5 };
+        maxPanel.Children.Add(new TextBlock { Text = "Максимум", FontSize = 12, Foreground = Brush("#C0C8D5") });
+        maxPanel.Children.Add(maximum);
+        Grid.SetColumn(maxPanel, 1);
+        memoryRow.Children.Add(minPanel);
+        memoryRow.Children.Add(maxPanel);
+        _mainContent.Children.Add(memoryRow);
+
+        var closeLauncher = new CheckBox { Content = "Закрывать лаунчер после запуска игры", IsChecked = _closeLauncherOnGameStart, Foreground = Brush("#E0E5ED"), Margin = new Thickness(0, 14, 0, 0) };
+        _mainContent.Children.Add(closeLauncher);
+        var save = NavButton("Сохранить настройки", () =>
+        {
+            if (!int.TryParse(minimum.SelectedItem?.ToString(), out var min) ||
+                !int.TryParse(maximum.SelectedItem?.ToString(), out var max) || max < min)
+            { _status.Text = "Максимальная память должна быть не меньше минимальной."; return; }
+            if (string.IsNullOrWhiteSpace(gamePath.Text)) { _status.Text = "Укажи папку игры."; return; }
+            _gameDirectory = Path.GetFullPath(gamePath.Text.Trim());
+            _minimumRamMb = min;
+            _maximumRamMb = max;
+            _closeLauncherOnGameStart = closeLauncher.IsChecked == true;
+            try { Directory.CreateDirectory(_gameDirectory); }
+            catch (Exception ex) { _status.Text = $"Не удалось создать папку игры: {ex.Message}"; return; }
+            SaveSettings();
+            _status.Text = "Настройки сохранены.";
+        });
+        save.Background = Brush("#19F58A");
+        save.Foreground = Brush("#092318");
+        save.FontWeight = FontWeight.Bold;
+        save.HorizontalContentAlignment = HorizontalAlignment.Center;
+        _mainContent.Children.Add(save);
+        _mainContent.Children.Add(new TextBlock { Text = "Для современных версий Minecraft обычно требуется Java 21.", Foreground = Brush("#B8C1D0"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 10, 0, 0) });
         var checkJava = NavButton("Проверить установленную Java", () => _ = CheckJavaAsync());
         checkJava.HorizontalContentAlignment = HorizontalAlignment.Center;
         _mainContent.Children.Add(checkJava);
-        _mainContent.Children.Add(new TextBlock { Text = "Поддерживаются сборки для Apple Silicon и Intel.", Foreground = Brush("#B8C1D0"), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 10) });
-        _status.Text = "Ник и выбранная версия сохраняются автоматически на этом Mac.";
+        _status.Text = "Настройки лаунчера.";
+    }
+
+    private void OpenFolder(string path)
+    {
+        try
+        {
+            Directory.CreateDirectory(path);
+            Process.Start(new ProcessStartInfo { FileName = "open", ArgumentList = { path }, UseShellExecute = false });
+            _status.Text = $"Открыта папка: {path}";
+        }
+        catch (Exception ex) { _status.Text = $"Не удалось открыть папку: {ex.Message}"; }
     }
 
     private static Border Card(string title, string subtitle) => new()
