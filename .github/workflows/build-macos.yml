@@ -5,6 +5,7 @@ on:
     branches: [main, feature/macos-port]
     paths:
       - "src/NexcraftLauncher.Mac/**"
+      - "tools/generate_icon.py"
       - ".github/workflows/build-macos.yml"
   pull_request:
     branches: [main]
@@ -26,6 +27,13 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Generate NEXCRAFT icon
+        run: |
+          python -m pip install --disable-pip-version-check pillow
+          python tools/generate_icon.py
       - name: Restore
         run: dotnet restore src/NexcraftLauncher.Mac/NexcraftLauncher.Mac.csproj
       - name: Publish
@@ -34,8 +42,15 @@ jobs:
         shell: bash
         run: |
           APP="artifacts/NEXCRAFT-${{ matrix.rid }}.app"
-          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$RUNNER_TEMP/NEXCRAFT.iconset"
           cp -R artifacts/publish/. "$APP/Contents/MacOS/"
+          ICON="artifacts/icon/Nexcraft.png"
+          for size in 16 32 128 256 512; do
+            sips -z "$size" "$size" "$ICON" --out "$RUNNER_TEMP/NEXCRAFT.iconset/icon_${size}x${size}.png" >/dev/null
+            doubled=$((size * 2))
+            sips -z "$doubled" "$doubled" "$ICON" --out "$RUNNER_TEMP/NEXCRAFT.iconset/icon_${size}x${size}@2x.png" >/dev/null
+          done
+          iconutil -c icns "$RUNNER_TEMP/NEXCRAFT.iconset" -o "$APP/Contents/Resources/NEXCRAFT.icns"
           cat > "$APP/Contents/Info.plist" <<'PLIST'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -46,6 +61,7 @@ jobs:
             <key>CFBundleIdentifier</key><string>com.nexcraft.launcher</string>
             <key>CFBundleExecutable</key><string>NEXCRAFT</string>
             <key>CFBundlePackageType</key><string>APPL</string>
+            <key>CFBundleIconFile</key><string>NEXCRAFT.icns</string>
             <key>CFBundleShortVersionString</key><string>0.1.0</string>
             <key>CFBundleVersion</key><string>1</string>
             <key>LSMinimumSystemVersion</key><string>12.0</string>
