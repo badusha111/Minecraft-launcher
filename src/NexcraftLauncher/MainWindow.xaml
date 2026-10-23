@@ -37,19 +37,20 @@
             <Setter Property="BorderBrush" Value="#8B6BFF"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="8"/>
+            <Setter Property="FontSize" Value="13"/>
         </Style>
     </Window.Resources>
     <Grid Margin="16">
         <Grid.ColumnDefinitions><ColumnDefinition Width="188"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
         <Border Grid.ColumnSpan="2" CornerRadius="18" Background="#151922" BorderBrush="#303744" BorderThickness="1"/>
-        <Grid Grid.Column="0" Margin="0,0,0,0">
+        <Grid Grid.Column="0">
             <Grid.RowDefinitions><RowDefinition Height="90"/><RowDefinition Height="*"/><RowDefinition Height="72"/></Grid.RowDefinitions>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="22,0,0,0">
                 <Border Width="34" Height="34" CornerRadius="9" Background="#173C31" BorderBrush="#19F58A" BorderThickness="1">
                     <TextBlock Text="N" FontSize="22" FontWeight="Black" Foreground="{StaticResource GreenBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="NEXCRAFT" FontSize="17" FontWeight="Bold" />
+                    <TextBlock Text="NEXCRAFT" FontSize="17" FontWeight="Bold"/>
                     <TextBlock Text="MINECRAFT LAUNCHER" FontSize="8" Foreground="{StaticResource MutedBrush}"/>
                 </StackPanel>
             </StackPanel>
@@ -64,7 +65,7 @@
                 <TextBlock Text="РАННЯЯ ВЕРСИЯ" FontSize="9" Foreground="{StaticResource OrangeBrush}" Margin="0,5,0,0"/>
             </StackPanel>
         </Grid>
-        <Grid Grid.Column="1" Margin="0,0,0,0">
+        <Grid Grid.Column="1">
             <Grid.RowDefinitions><RowDefinition Height="62"/><RowDefinition Height="*"/></Grid.RowDefinitions>
             <DockPanel Margin="26,0,26,0" LastChildFill="False">
                 <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
@@ -121,12 +122,19 @@
                                 <TextBlock Text="Запуск Minecraft" FontSize="17" FontWeight="SemiBold" Margin="0,8,0,12" Foreground="#F5F7FA"/>
                                 <TextBlock Text="Твой игровой ник" FontSize="12" Foreground="#D0D7E2" Margin="0,0,0,7"/>
                                 <TextBox x:Name="PlayerNicknameTextBox" Height="40" Padding="10,8" FontSize="14" Background="#202631" Foreground="#FFFFFF" BorderBrush="#586477" BorderThickness="1" MaxLength="16" ToolTip="3–16 символов: A–Z, 0–9 и подчёркивание"/>
-                                <TextBlock Text="ВЕРСИЯ MINECRAFT" FontSize="12" FontWeight="Bold" Foreground="#B99AFF" Margin="0,16,0,10"/>
-                                <ComboBox x:Name="VersionSelector" Height="40" SelectedIndex="0">
+                                <Grid Margin="0,16,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="ВЕРСИЯ MINECRAFT" FontSize="12" FontWeight="Bold" Foreground="#B99AFF" VerticalAlignment="Center"/>
+                                    <Border Grid.Column="1" Background="#29213D" BorderBrush="#6B4DFF" BorderThickness="1" CornerRadius="6" Padding="7,3">
+                                        <TextBlock Text="JAVA" FontSize="9" FontWeight="Bold" Foreground="#D9CCFF"/>
+                                    </Border>
+                                </Grid>
+                                <ComboBox x:Name="VersionSelector" Height="42" SelectedIndex="0" IsTextSearchEnabled="True" ToolTip="Выбери любую доступную стабильную версию Minecraft">
                                     <ComboBoxItem Content="1.21.1 — Vanilla"/>
                                     <ComboBoxItem Content="1.20.1 — Vanilla"/>
                                     <ComboBoxItem Content="1.16.5 — Vanilla"/>
                                 </ComboBox>
+                                <TextBlock x:Name="VersionInfoText" Text="Доступные версии появятся после загрузки официального списка." TextWrapping="Wrap" Foreground="#AEB8C8" FontSize="11" Margin="0,7,0,0"/>
                                 <TextBlock x:Name="StatusText" Text="Выбери версию и нажми «ИГРАТЬ», чтобы загрузить игровые файлы." TextWrapping="Wrap" Foreground="#D0D7E2" FontSize="12" Margin="0,12,0,0"/>
                                 <ProgressBar x:Name="DownloadProgress" Height="6" Margin="0,10,0,0" Minimum="0" Maximum="100" Value="0" Visibility="Collapsed" Background="#252B35" Foreground="{StaticResource GreenBrush}" BorderThickness="0"/>
                             </StackPanel>
