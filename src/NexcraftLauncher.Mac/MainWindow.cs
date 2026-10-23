@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
@@ -505,6 +506,9 @@ public sealed class MainWindow : Window
         var gamePath = new TextBox { Text = _gameDirectory, Watermark = "Путь к папке Minecraft", Padding = new Thickness(10, 8), Background = Brush("#202631"), Foreground = Brushes.White, BorderBrush = Brush("#586477") };
         _mainContent.Children.Add(gamePath);
         var folderActions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        var browseGame = NavButton("Обзор…", () => _ = BrowseGameFolderAsync(gamePath));
+        browseGame.HorizontalContentAlignment = HorizontalAlignment.Center;
+        folderActions.Children.Add(browseGame);
         var openGame = NavButton("Открыть папку в Finder", () => OpenFolder(gamePath.Text ?? _gameDirectory));
         openGame.HorizontalContentAlignment = HorizontalAlignment.Center;
         folderActions.Children.Add(openGame);
@@ -564,6 +568,24 @@ public sealed class MainWindow : Window
         checkJava.HorizontalContentAlignment = HorizontalAlignment.Center;
         _mainContent.Children.Add(checkJava);
         _status.Text = "Настройки лаунчера.";
+    }
+
+    private async Task BrowseGameFolderAsync(TextBox target)
+    {
+        try
+        {
+            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "Выберите папку для файлов Minecraft",
+                AllowMultiple = false
+            });
+            if (folders.Count > 0)
+                target.Text = folders[0].Path.LocalPath;
+        }
+        catch (Exception ex)
+        {
+            _status.Text = $"Не удалось открыть выбор папки: {ex.Message}";
+        }
     }
 
     private void OpenFolder(string path)
