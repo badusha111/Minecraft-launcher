@@ -8,6 +8,8 @@ namespace NexcraftLauncher;
 public partial class MainWindow : Window
 {
     private readonly LauncherSettingsService _settingsService = new();
+    private readonly MinecraftMetadataService _metadataService = new();
+    private readonly JavaRuntimeService _javaRuntimeService = new();
     private LauncherSettings _settings;
 
     public MainWindow()
@@ -49,11 +51,55 @@ public partial class MainWindow : Window
         }
     }
 
-    private void Play_Click(object sender, RoutedEventArgs e)
+    private async void Play_Click(object sender, RoutedEventArgs e)
     {
         SaveSelectedVersion();
-        var version = (VersionSelector.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "не выбрана";
-        StatusText.Text = $"Выбрано: {version}. Запуск пока не подключён — следующий этап: установка файлов игры и проверка Java.";
+        var version = (VersionSelector.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Split('—', StringSplitOptions.TrimEntries)[0];
+        if (string.IsNullOrWhiteSpace(version))
+        {
+            StatusText.Text = "Сначала выбери версию Minecraft.";
+            return;
+        }
+
+        StatusText.Text = "Проверяю официальные метаданные Minecraft…";
+        try
+        {
+            var metadata = await _metadataService.GetVersionMetadataAsync(version);
+            StatusText.Text = $"Версия {metadata.Id} найдена. Проверяю Java…";
+            var java = await _javaRuntimeService.DetectAsync();
+            var requiredJava = metadata.JavaVersion?.MajorVersion;
+            if (java is null)
+            {
+                StatusText.Text = requiredJava is int required
+                    ? $"Метаданные {metadata.Id} проверены. Java {required} не найдена. Установка и запуск игры ещё не подключены."
+                    : $"Метаданные {metadata.Id} проверены, но Java не найдена. Установка и запуск игры ещё не подключены.";
+                return;
+            }
+
+            if (requiredJava is int requiredVersion && java.MajorVersion < requiredVersion)
+            {
+                StatusText.Text = $"Найдена Java {java.MajorVersion}, а Minecraft {metadata.Id} требует Java {requiredVersion}. Запуск пока недоступен.";
+                return;
+            }
+
+            StatusText.Text = $"Проверка пройдена: Minecraft {metadata.Id}, Java {java.MajorVersion}. Загрузка игровых файлов и запуск — следующий этап.";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText.Text = "Проверка отменена.";
+        }
+        catch (HttpRequestException ex)
+        {
+            StatusText.Text = $"Не удалось получить данные Mojang: {ex.Message}";
+        }
+        catch (InvalidDataException ex)
+        {
+            StatusText.Text = $"Не удалось проверить версию: {ex.Message}";
+        }
+        catch (TaskCanceledException)
+        {
+            StatusText.Text = "Сервер метаданных не ответил вовремя. Попробуй ещё раз.";
+        }
     }
 
     private void Mods_Click(object sender, RoutedEventArgs e) =>
